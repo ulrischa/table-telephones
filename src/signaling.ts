@@ -154,7 +154,7 @@ export function encodeSignal(signal: ConnectionSignal): string {
   const bytes = strToU8(json);
 
   if (bytes.length > MAX_SIGNAL_JSON_BYTES) {
-    throw new Error("Die Verbindungsdaten sind zu groß für einen QR-Code.");
+    throw new Error("Die Verbindungsdaten sind zu groß.");
   }
 
   const compressed = zlibSync(bytes, { level: 9 });

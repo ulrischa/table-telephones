@@ -21,43 +21,6 @@ export async function renderQrCode(
   canvas.setAttribute("aria-label", "QR-Code mit Verbindungsdaten");
 }
 
-export function canvasToPngFile(
-  canvas: HTMLCanvasElement,
-  fileName: string,
-): Promise<File> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        reject(new Error("Der QR-Code konnte nicht als Bild erstellt werden."));
-        return;
-      }
-      resolve(new File([blob], fileName, { type: "image/png" }));
-    }, "image/png");
-  });
-}
-
-export async function shareQrCode(file: File, code: string): Promise<void> {
-  if (!navigator.share) {
-    throw new Error("Teilen wird von diesem Browser nicht unterstützt.");
-  }
-
-  const fileData: ShareData = {
-    title: "table-telephones Verbindung",
-    text: "Verbindungscode für table-telephones",
-    files: [file],
-  };
-
-  if (navigator.canShare?.(fileData)) {
-    await navigator.share(fileData);
-    return;
-  }
-
-  await navigator.share({
-    title: "table-telephones Verbindung",
-    text: code,
-  });
-}
-
 function decodeCanvas(canvas: HTMLCanvasElement): string | null {
   const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context || canvas.width === 0 || canvas.height === 0) {

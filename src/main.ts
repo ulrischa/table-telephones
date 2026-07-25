@@ -1,5 +1,10 @@
 import "./styles.css";
 import { ChatView } from "./chat-view";
+import {
+  clearInviteFromAddress,
+  hasInviteLink,
+  readInviteLink,
+} from "./invite-link";
 import { LocalRoom } from "./room";
 import { SignalUi } from "./signal-ui";
 import type { AnswerSignal, OfferSignal, RoomEvents } from "./types";
@@ -13,10 +18,19 @@ interface BeforeInstallPromptEvent extends Event {
 let room: LocalRoom | null = null;
 let installPrompt: BeforeInstallPromptEvent | null = null;
 let pendingAnswer: AnswerSignal | null = null;
+let pendingInvite: OfferSignal | null = null;
 
 const toastRegion = getRequiredElement("#toast-region", HTMLElement);
 const startForm = getRequiredElement("#start-form", HTMLFormElement);
 const displayName = getRequiredElement("#display-name", HTMLInputElement);
+const inviteNotice = getRequiredElement("#invite-notice", HTMLElement);
+const inviteHostName = getRequiredElement("#invite-host-name", HTMLElement);
+const hostButton = getRequiredElement("#host-button", HTMLButtonElement);
+const joinButton = getRequiredElement("#join-button", HTMLButtonElement);
+const discardInviteButton = getRequiredElement(
+  "#discard-invite-button",
+  HTMLButtonElement,
+);
 const installButton = getRequiredElement("#install-button", HTMLButtonElement);
 
 function notify(message: string): void {
@@ -79,11 +93,10 @@ async function addPerson(): Promise<void> {
     const result = await signalUi.showCode({
       signal: offer,
       step: "Schritt 1 von 2",
-      title: "Einladung zeigen",
+      title: "Einladung teilen",
       instruction:
-        "Die andere Person scannt diesen Code und erzeugt anschließend eine Antwort.",
-      fileName: "table-telephones-einladung.png",
-      nextLabel: "Antwort scannen",
+        "Teile den Einladungslink. Die andere Person öffnet ihn, gibt ihren Namen ein und sendet dir danach eine Antwort.",
+      nextLabel: "Antwort eingeben",
     });
 
     if (result !== "next") {
@@ -100,9 +113,9 @@ async function addPerson(): Promise<void> {
   }
 }
 
-async function joinRoom(): Promise<void> {
+async function joinRoom(invite: OfferSignal | null = null): Promise<void> {
   try {
-    const signal = await signalUi.scanSignal("offer");
+    const signal = invite ?? (await signalUi.scanSignal("offer"));
     const guestRoom = new LocalRoom("guest", displayName.value, createRoomEvents());
     let answer: AnswerSignal;
     try {
@@ -113,6 +126,7 @@ async function joinRoom(): Promise<void> {
     }
 
     room = guestRoom;
+    pendingInvite = null;
     chatView.show("guest");
     pendingAnswer = answer;
     chatView.setHeaderAction("Antwort zeigen", true);
@@ -130,10 +144,9 @@ async function showGuestAnswer(answer: AnswerSignal): Promise<void> {
     await signalUi.showCode({
       signal: answer,
       step: "Schritt 2 von 2",
-      title: "Antwort zurückgeben",
+      title: "Antwort zurücksenden",
       instruction:
-        "Der Raum-Ersteller scannt diesen Antwortcode. Danach öffnet sich der Chat automatisch.",
-      fileName: "table-telephones-antwort.png",
+        "Teile oder kopiere den Antwortcode zurück zum Raum-Ersteller. Er fügt ihn in seiner geöffneten App ein.",
     });
   } catch (error) {
     notify(
@@ -157,6 +170,49 @@ function supportsRequiredApis(): boolean {
     typeof crypto.randomUUID === "function" &&
     "TextEncoder" in window
   );
+}
+
+function showPendingInvite(invite: OfferSignal): void {
+  pendingInvite = invite;
+  inviteHostName.textContent = `Einladung von ${invite.host.name}`;
+  inviteNotice.hidden = false;
+  hostButton.hidden = true;
+  joinButton.textContent = "Einladung annehmen";
+  joinButton.classList.remove("button-secondary");
+  joinButton.classList.add("button-primary");
+  discardInviteButton.hidden = false;
+  displayName.focus();
+}
+
+function discardPendingInvite(): void {
+  pendingInvite = null;
+  inviteNotice.hidden = true;
+  hostButton.hidden = false;
+  joinButton.textContent = "Chat beitreten";
+  joinButton.classList.remove("button-primary");
+  joinButton.classList.add("button-secondary");
+  discardInviteButton.hidden = true;
+}
+
+function loadInviteFromAddress(): void {
+  if (!hasInviteLink(window.location.href)) {
+    return;
+  }
+
+  try {
+    const invite = readInviteLink(window.location.href);
+    if (invite) {
+      showPendingInvite(invite);
+    }
+  } catch (error) {
+    notify(
+      error instanceof Error
+        ? error.message
+        : "Der Einladungslink konnte nicht gelesen werden.",
+    );
+  } finally {
+    clearInviteFromAddress();
+  }
 }
 
 startForm.addEventListener("submit", (event) => {
@@ -186,7 +242,11 @@ startForm.addEventListener("submit", (event) => {
   });
 
   const action =
-    submitter.id === "host-button" ? startHost() : submitter.id === "join-button" ? joinRoom() : null;
+    submitter.id === "host-button"
+      ? startHost()
+      : submitter.id === "join-button"
+        ? joinRoom(pendingInvite)
+        : null;
 
   void action?.finally(() => {
     if (!room) {
@@ -198,6 +258,10 @@ startForm.addEventListener("submit", (event) => {
 });
 
 displayName.addEventListener("input", () => displayName.setCustomValidity(""));
+discardInviteButton.addEventListener("click", () => {
+  discardPendingInvite();
+  displayName.focus();
+});
 
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
@@ -225,6 +289,8 @@ window.addEventListener("pagehide", () => {
   signalUi.closeAll();
   room?.close();
 });
+
+loadInviteFromAddress();
 
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {

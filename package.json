@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "An offline-capable, serverless local group chat using WebRTC and manual QR signaling.",
+  "description": "An offline-capable, serverless local WebRTC group chat with shareable invitation links.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

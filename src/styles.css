@@ -229,6 +229,23 @@ main {
   font-weight: 750;
 }
 
+.invite-notice {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem 0.9rem;
+  margin-bottom: 0.25rem;
+  color: #15553a;
+  background: #e0f2e8;
+  border: 1px solid #91c8a9;
+  border-radius: var(--radius-sm);
+}
+
+.invite-notice span {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 input[type="text"],
 textarea {
   width: 100%;
@@ -662,7 +679,7 @@ textarea {
 .qr-panel {
   display: grid;
   padding: 0.75rem;
-  margin-bottom: 1rem;
+  margin-top: 0.75rem;
   place-items: center;
   background: white;
   border: 1px solid var(--border);
@@ -685,10 +702,16 @@ textarea {
   font-size: 0.85rem;
 }
 
-.code-details summary {
+.code-details summary,
+.qr-details summary {
   width: fit-content;
   cursor: pointer;
   font-weight: 750;
+}
+
+.qr-details {
+  margin: 1rem 0;
+  font-size: 0.85rem;
 }
 
 .code-details textarea {

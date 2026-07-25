@@ -69,6 +69,11 @@
           </div>
 
           <form id="start-form" class="start-panel">
+            <div id="invite-notice" class="invite-notice" role="status" hidden>
+              <strong id="invite-host-name">Einladung</strong>
+              <span>Gib deinen Namen ein und nimm die Einladung an.</span>
+            </div>
+
             <label for="display-name">Dein Name</label>
             <input
               id="display-name"
@@ -88,13 +93,21 @@
               <button id="join-button" class="button button-secondary" type="submit" value="join">
                 Chat beitreten
               </button>
+              <button
+                id="discard-invite-button"
+                class="button button-quiet"
+                type="button"
+                hidden
+              >
+                Einladung verwerfen
+              </button>
             </div>
           </form>
 
           <ol class="how-it-works" aria-label="So funktioniert die Verbindung">
             <li><strong>1</strong><span>App vorher einmal über HTTPS öffnen und installieren.</span></li>
             <li><strong>2</strong><span>Alle Geräte mit demselben WLAN oder Hotspot verbinden.</span></li>
-            <li><strong>3</strong><span>Einladung und Antwort nacheinander als QR-Code scannen.</span></li>
+            <li><strong>3</strong><span>Einladungslink öffnen, Namen eingeben und Antwortcode zurücksenden.</span></li>
           </ol>
         </section>
 
@@ -167,7 +180,7 @@
       <form method="dialog" class="dialog-header">
         <div>
           <p id="signal-step" class="eyebrow">Verbindung</p>
-          <h2 id="signal-title">QR-Code austauschen</h2>
+          <h2 id="signal-title">Verbindungsdaten austauschen</h2>
         </div>
         <button class="icon-button" value="cancel" aria-label="Dialog schließen">×</button>
       </form>
@@ -199,7 +212,7 @@
             hidden
           >
           <span>oder</span>
-          <label for="signal-paste">Verbindungscode einfügen</label>
+          <label id="signal-paste-label" for="signal-paste">Verbindungsdaten einfügen</label>
           <textarea id="signal-paste" rows="3" spellcheck="false"></textarea>
           <button id="use-pasted-signal" class="button button-secondary" type="button">
             Code verwenden

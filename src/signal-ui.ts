@@ -1,12 +1,7 @@
 import type { ConnectionSignal } from "./types";
-import { decodeSignal, encodeSignal } from "./signaling";
-import {
-  CameraQrScanner,
-  canvasToPngFile,
-  renderQrCode,
-  scanQrImage,
-  shareQrCode,
-} from "./qr";
+import { createInviteLink, decodeSharedSignal } from "./invite-link";
+import { encodeSignal } from "./signaling";
+import { CameraQrScanner, renderQrCode, scanQrImage } from "./qr";
 import { getRequiredElement } from "./utils";
 
 interface ShowCodeOptions {
@@ -14,7 +9,6 @@ interface ShowCodeOptions {
   step: string;
   title: string;
   instruction: string;
-  fileName: string;
   nextLabel?: string;
 }
 
@@ -34,6 +28,10 @@ export class SignalUi {
   private readonly scannerVideo = getRequiredElement("#scanner-video", HTMLVideoElement);
   private readonly scannerStatus = getRequiredElement("#scanner-status", HTMLElement);
   private readonly qrImageInput = getRequiredElement("#qr-image-input", HTMLInputElement);
+  private readonly signalPasteLabel = getRequiredElement(
+    "#signal-paste-label",
+    HTMLLabelElement,
+  );
   private readonly signalPaste = getRequiredElement("#signal-paste", HTMLTextAreaElement);
   private readonly usePastedSignal = getRequiredElement(
     "#use-pasted-signal",
@@ -49,6 +47,11 @@ export class SignalUi {
 
   async showCode(options: ShowCodeOptions): Promise<"next" | "closed"> {
     const code = encodeSignal(options.signal);
+    const isInvite = options.signal.kind === "offer";
+    const sharedValue =
+      options.signal.kind === "offer"
+        ? createInviteLink(options.signal)
+        : code;
     this.signalStep.textContent = options.step;
     this.signalTitle.textContent = options.title;
     this.signalContent.replaceChildren();
@@ -57,37 +60,53 @@ export class SignalUi {
     instruction.className = "signal-instruction";
     instruction.textContent = options.instruction;
 
-    const qrPanel = document.createElement("div");
-    qrPanel.className = "qr-panel";
-    const canvas = document.createElement("canvas");
-    qrPanel.append(canvas);
-
     const actions = document.createElement("div");
     actions.className = "signal-actions";
 
-    const shareButton = this.createButton("QR-Code teilen", "button-primary");
+    const shareButton = this.createButton(
+      isInvite ? "Einladung teilen" : "Antwort teilen",
+      "button-primary",
+    );
     shareButton.hidden = !navigator.share;
-    const copyButton = this.createButton("Code kopieren", "button-secondary");
+    const copyButton = this.createButton(
+      isInvite ? "Einladungslink kopieren" : "Antwortcode kopieren",
+      "button-secondary",
+    );
     actions.append(shareButton, copyButton);
 
     const details = document.createElement("details");
     details.className = "code-details";
     const summary = document.createElement("summary");
-    summary.textContent = "Verbindungscode anzeigen";
+    summary.textContent = isInvite
+      ? "Einladungslink anzeigen"
+      : "Antwortcode anzeigen";
     const codeField = document.createElement("textarea");
     codeField.readOnly = true;
     codeField.rows = 4;
     codeField.spellcheck = false;
-    codeField.value = code;
-    codeField.setAttribute("aria-label", "Verbindungscode");
+    codeField.value = sharedValue;
+    codeField.setAttribute(
+      "aria-label",
+      isInvite ? "Einladungslink" : "Antwortcode",
+    );
     details.append(summary, codeField);
+
+    const qrDetails = document.createElement("details");
+    qrDetails.className = "qr-details";
+    const qrSummary = document.createElement("summary");
+    qrSummary.textContent = "QR-Code zum direkten Scannen anzeigen";
+    const qrPanel = document.createElement("div");
+    qrPanel.className = "qr-panel";
+    const canvas = document.createElement("canvas");
+    qrPanel.append(canvas);
+    qrDetails.append(qrSummary, qrPanel);
 
     const privacy = document.createElement("p");
     privacy.className = "privacy-note";
     privacy.textContent =
-      "Teile diesen QR-Code nur mit den gewünschten Teilnehmern. Er enthält lokale Verbindungsdaten.";
+      "Teile diese Verbindungsdaten nur mit den gewünschten Teilnehmern. Sie enthalten lokale Netzwerkdaten.";
 
-    this.signalContent.append(instruction, qrPanel, actions, details, privacy);
+    this.signalContent.append(instruction, actions, details, qrDetails, privacy);
 
     let nextButton: HTMLButtonElement | null = null;
     if (options.nextLabel) {
@@ -96,11 +115,10 @@ export class SignalUi {
       this.signalContent.append(nextButton);
     }
 
-    await renderQrCode(canvas, code);
-    const qrFile = await canvasToPngFile(canvas, options.fileName);
+    await renderQrCode(canvas, isInvite ? sharedValue : code);
 
     shareButton.addEventListener("click", () => {
-      void shareQrCode(qrFile, code).catch((error: unknown) => {
+      void this.shareSignal(options.signal, sharedValue).catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
@@ -109,7 +127,11 @@ export class SignalUi {
     });
 
     copyButton.addEventListener("click", () => {
-      void this.copyCode(code, codeField);
+      void this.copyValue(
+        sharedValue,
+        codeField,
+        isInvite ? "Einladungslink kopiert." : "Antwortcode kopiert.",
+      );
     });
 
     if (!this.signalDialog.open) {
@@ -143,8 +165,13 @@ export class SignalUi {
   scanSignal(expectedKind: "offer" | "answer"): Promise<ConnectionSignal> {
     this.scanner.stop();
     this.scannerTitle.textContent =
-      expectedKind === "offer" ? "Einladung scannen" : "Antwort scannen";
-    this.scannerStatus.textContent = "Halte den QR-Code vollständig in den Rahmen.";
+      expectedKind === "offer" ? "Einladung öffnen" : "Antwort eingeben";
+    this.scannerStatus.textContent =
+      "Scanne den QR-Code oder füge die Verbindungsdaten unten ein.";
+    this.signalPasteLabel.textContent =
+      expectedKind === "offer"
+        ? "Einladungslink oder Verbindungscode einfügen"
+        : "Antwortcode einfügen";
     this.signalPaste.value = "";
     this.qrImageInput.value = "";
 
@@ -175,7 +202,7 @@ export class SignalUi {
       };
       const processCode = (raw: string) => {
         try {
-          const signal = decodeSignal(raw);
+          const signal = decodeSharedSignal(raw);
           if (signal.kind !== expectedKind) {
             throw new Error(
               expectedKind === "offer"
@@ -212,7 +239,7 @@ export class SignalUi {
 
       void this.scanner.start(processCode).catch(() => {
         this.scannerStatus.textContent =
-          "Kamera nicht verfügbar. Du kannst ein QR-Bild auswählen oder den Code einfügen.";
+          "Kamera nicht verfügbar. Du kannst ein QR-Bild auswählen oder die Verbindungsdaten einfügen.";
       });
     });
   }
@@ -239,18 +266,42 @@ export class SignalUi {
     return button;
   }
 
-  private async copyCode(
-    code: string,
+  private async shareSignal(
+    signal: ConnectionSignal,
+    sharedValue: string,
+  ): Promise<void> {
+    if (!navigator.share) {
+      throw new Error("Teilen wird von diesem Browser nicht unterstützt.");
+    }
+
+    if (signal.kind === "offer") {
+      await navigator.share({
+        title: "Einladung zu table-telephones",
+        text: `${signal.host.name} lädt dich zu einem lokalen Chat ein.`,
+        url: sharedValue,
+      });
+      return;
+    }
+
+    await navigator.share({
+      title: "Antwort für table-telephones",
+      text: `Antwortcode für table-telephones:\n${sharedValue}`,
+    });
+  }
+
+  private async copyValue(
+    value: string,
     fallbackField: HTMLTextAreaElement,
+    successMessage: string,
   ): Promise<void> {
     try {
-      await navigator.clipboard.writeText(code);
-      this.notify("Verbindungscode kopiert.");
+      await navigator.clipboard.writeText(value);
+      this.notify(successMessage);
     } catch {
       fallbackField.closest("details")?.setAttribute("open", "");
       fallbackField.focus();
       fallbackField.select();
-      this.notify("Bitte den markierten Code manuell kopieren.");
+      this.notify("Bitte den markierten Text manuell kopieren.");
     }
   }
 

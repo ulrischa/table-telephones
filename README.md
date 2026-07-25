@@ -9,9 +9,9 @@ Internetzugang verwendet werden.
 
 - Text- und Bildchat für zwei oder mehr Teilnehmer
 - direkte WebRTC-DataChannel-Verbindungen im selben WLAN oder Smartphone-Hotspot
-- manueller Verbindungsaufbau mit Einladungs- und Antwort-QR-Code
-- QR-Scan per Kamera oder Bilddatei sowie Verbindungscode als Fallback
-- Teilen des QR-Codes als PNG über die Web Share API
+- teilbarer Einladungslink mit eingebettetem Verbindungscode
+- Namensabfrage und direkte Annahme nach dem Öffnen des Einladungslinks
+- Antwortcode per Web Share oder Zwischenablage; QR-Scan weiterhin als Fallback
 - installierbare und offlinefähige PWA
 - keine Konten, Datenbank, Werbung, Tracker oder externen Ressourcen
 - keine dauerhafte Speicherung von Nachrichten und Bildern
@@ -20,15 +20,23 @@ Internetzugang verwendet werden.
 ## So funktioniert die Verbindung
 
 1. Alle Geräte öffnen die App im selben WLAN oder Smartphone-Hotspot.
-2. Der Raum-Ersteller gibt einen Namen ein, startet einen Chat und zeigt den
-   Einladungs-QR-Code.
-3. Ein Teilnehmer scannt die Einladung und zeigt den erzeugten Antwort-QR-Code.
-4. Der Raum-Ersteller scannt die Antwort. Danach öffnet sich die direkte
+2. Der Raum-Ersteller gibt einen Namen ein, startet einen Chat und teilt den
+   Einladungslink.
+3. Ein Teilnehmer öffnet den Link, gibt seinen Namen ein und nimmt die Einladung
+   an.
+4. Der Teilnehmer teilt den erzeugten Antwortcode zurück. Der Raum-Ersteller
+   fügt ihn in der weiterhin geöffneten App ein. Danach öffnet sich die direkte
    WebRTC-Verbindung.
 5. Für jeden weiteren Teilnehmer wird der Vorgang wiederholt.
 
-Alternativ lassen sich QR-Bilder auswählen oder die kompakten Verbindungscodes
-kopieren und einfügen. Die Einladungen sind 15 Minuten gültig.
+Einladungslink und Antwortcode lassen sich über die Web Share API oder die
+Zwischenablage weitergeben. QR-Codes können für einen direkten Scan zwischen
+zwei Geräten weiterhin angezeigt, per Kamera gelesen oder als Bild ausgewählt
+werden. Die Einladungen sind 15 Minuten gültig.
+
+Der Einladungslink speichert den Verbindungscode im URL-Fragment. Dieses
+Fragment wird nicht an den Webserver übertragen und nach dem Einlesen aus der
+Adresszeile entfernt.
 
 Bei einem Gruppenchat ist der Raum-Ersteller der lokale Relay-Peer: Jeder
 Teilnehmer ist direkt mit ihm verbunden, und er leitet Nachrichten an die
@@ -43,10 +51,10 @@ bleiben. Eine nachträgliche Zustellung gibt es nicht.
 - gegebenenfalls Freigabe für Kamera und lokales Netzwerk im Browser oder
   Betriebssystem
 
-Die Kamera und Web Share sind optional: QR-Bilder und Verbindungscodes dienen
-als Fallback. Manche Firmen-, Gäste- und öffentliche WLANs isolieren verbundene
-Geräte. In solchen Netzen kann WebRTC trotz korrektem QR-Austausch keine direkte
-Verbindung aufbauen.
+Kamera und Web Share sind optional: Zwischenablage, QR-Bilder und
+Verbindungscodes dienen als Fallback. Manche Firmen-, Gäste- und öffentliche
+WLANs isolieren verbundene Geräte. In solchen Netzen kann WebRTC trotz
+korrektem Signalaustausch keine direkte Verbindung aufbauen.
 
 ## Entwicklung
 
@@ -87,7 +95,8 @@ lokal. Dadurch lässt sich die installierte App später ohne Internet öffnen.
 ## Sicherheit und Datenschutz
 
 - WebRTC verschlüsselt jede Peer-Verbindung mit DTLS.
-- Der QR-Austausch ersetzt einen zentralen Signalisierungsserver.
+- Der Austausch von Einladungslink und Antwortcode ersetzt einen zentralen
+  Signalisierungsserver.
 - Bei Gruppen endet die Verschlüsselung jeweils beim Raum-Ersteller, da er die
   Nachrichten an die anderen Peer-Verbindungen weiterleitet.
 - Texte werden ausschließlich als Text in das DOM eingefügt.
@@ -125,7 +134,8 @@ werden.
 ## Technische Grenzen
 
 - keine Verbindung über unterschiedliche Netze, da STUN und TURN bewusst fehlen
-- keine automatische Gerätesuche; jede Verbindung benötigt zwei Signalisierungsschritte
+- keine automatische Gerätesuche; jede Verbindung benötigt weiterhin
+  Einladungs- und Antwortschritt
 - keine Chat-Historie und keine Zustellung an nicht verbundene Teilnehmer
 - Raum-Ersteller als Relay-Peer und Single Point of Failure bei Gruppen
 - Protokolllimit von 128 Teilnehmern einschließlich Raum-Ersteller; die

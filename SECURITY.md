@@ -9,7 +9,8 @@ anonymer Kommunikation.
 
 ## Vertrauensgrenzen
 
-- QR-Codes und eingefügte Verbindungscodes sind nicht vertrauenswürdig.
+- Einladungslinks, QR-Codes und eingefügte Verbindungscodes sind nicht
+  vertrauenswürdig.
 - Jeder DataChannel-Peer kann manipulierte Protokollnachrichten senden.
 - Ausgewählte und empfangene Bilder sind nicht vertrauenswürdig.
 - Bei Gruppen sieht und relayed der Raum-Ersteller alle Nachrichten.
@@ -20,6 +21,8 @@ anonymer Kommunikation.
 - WebRTC DTLS für Transportverschlüsselung
 - keine ICE-Server und dadurch keine Internet-Relay-Verbindungen
 - streng validierte, komprimierte Signalcodes mit Dekompressionslimit
+- Einladungsdaten ausschließlich im URL-Fragment, das nicht an den Webserver
+  gesendet und nach dem Einlesen aus der Adresszeile entfernt wird
 - Größenlimits für Text, Steuerpakete, Bilder und Teilnehmerlisten
 - 16-KB-Bildblöcke mit Backpressure auf dem DataChannel
 - Rasterbilder ausschließlich als JPEG, PNG oder WebP; kein SVG
@@ -29,7 +32,8 @@ anonymer Kommunikation.
 
 ## Bekannte Grenzen
 
-- Ein abgegriffener gültiger QR-Code kann eine unberechtigte Verbindung erlauben.
+- Ein abgegriffener gültiger Einladungslink, QR-Code oder Verbindungscode kann
+  einen unberechtigten Verbindungsversuch erlauben.
 - Namen sind nicht verifiziert und können nachgeahmt werden.
 - Der Raum-Ersteller ist bei Gruppenchats ein vertrauenswürdiger Relay-Peer.
 - Browser- und Bilddecoder-Sicherheitsupdates liegen außerhalb der App.
