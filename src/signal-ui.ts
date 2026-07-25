@@ -31,6 +31,26 @@ export class SignalUi {
   private readonly scannerTitle = getRequiredElement("#scanner-title", HTMLElement);
   private readonly scannerVideo = getRequiredElement("#scanner-video", HTMLVideoElement);
   private readonly scannerStatus = getRequiredElement("#scanner-status", HTMLElement);
+  private readonly scannerControls = getRequiredElement(
+    "#scanner-controls",
+    HTMLElement,
+  );
+  private readonly scannerRefocus = getRequiredElement(
+    "#scanner-refocus",
+    HTMLButtonElement,
+  );
+  private readonly scannerZoomControl = getRequiredElement(
+    "#scanner-zoom-control",
+    HTMLLabelElement,
+  );
+  private readonly scannerZoom = getRequiredElement(
+    "#scanner-zoom",
+    HTMLInputElement,
+  );
+  private readonly scannerTorch = getRequiredElement(
+    "#scanner-torch",
+    HTMLButtonElement,
+  );
   private readonly qrImageInput = getRequiredElement("#qr-image-input", HTMLInputElement);
   private readonly signalPasteLabel = getRequiredElement(
     "#signal-paste-label",
@@ -46,7 +66,33 @@ export class SignalUi {
 
   constructor(notify: (message: string) => void) {
     this.notify = notify;
-    this.scannerDialog.addEventListener("close", () => this.scanner.stop());
+    this.scannerDialog.addEventListener("close", () => {
+      this.scanner.stop();
+      this.resetCameraControls();
+    });
+    this.scannerVideo.addEventListener("click", () => {
+      void this.refocusCamera();
+    });
+    this.scannerRefocus.addEventListener("click", () => {
+      void this.refocusCamera();
+    });
+    this.scannerZoom.addEventListener("input", () => {
+      void this.scanner.setZoom(this.scannerZoom.valueAsNumber).catch(() => {
+        this.scannerStatus.textContent = "Zoom could not be changed.";
+      });
+    });
+    this.scannerTorch.addEventListener("click", () => {
+      const enabled = this.scannerTorch.getAttribute("aria-pressed") !== "true";
+      void this.scanner
+        .setTorch(enabled)
+        .then(() => {
+          this.scannerTorch.setAttribute("aria-pressed", String(enabled));
+          this.scannerTorch.textContent = enabled ? "Light off" : "Light";
+        })
+        .catch(() => {
+          this.scannerStatus.textContent = "The light could not be changed.";
+        });
+    });
   }
 
   async showCode(options: ShowCodeOptions): Promise<"next" | "closed"> {
@@ -68,12 +114,12 @@ export class SignalUi {
     actions.className = "signal-actions";
 
     const shareButton = this.createButton(
-      isInvite ? "Einladung teilen" : "Antwort teilen",
+      isInvite ? "Share invitation" : "Share answer",
       "button-primary",
     );
     shareButton.hidden = !navigator.share;
     const copyButton = this.createButton(
-      isInvite ? "Einladungslink kopieren" : "Antwortcode kopieren",
+      isInvite ? "Copy invitation link" : "Copy answer code",
       "button-secondary",
     );
     actions.append(shareButton, copyButton);
@@ -82,8 +128,8 @@ export class SignalUi {
     details.className = "code-details";
     const summary = document.createElement("summary");
     summary.textContent = isInvite
-      ? "Einladungslink anzeigen"
-      : "Antwortcode anzeigen";
+      ? "Show invitation link"
+      : "Show answer code";
     const codeField = document.createElement("textarea");
     codeField.readOnly = true;
     codeField.rows = 4;
@@ -91,14 +137,14 @@ export class SignalUi {
     codeField.value = sharedValue;
     codeField.setAttribute(
       "aria-label",
-      isInvite ? "Einladungslink" : "Antwortcode",
+      isInvite ? "Invitation link" : "Answer code",
     );
     details.append(summary, codeField);
 
     const qrDetails = document.createElement("details");
     qrDetails.className = "qr-details";
     const qrSummary = document.createElement("summary");
-    qrSummary.textContent = "QR-Code zum direkten Scannen anzeigen";
+    qrSummary.textContent = "Show QR code for direct scanning";
     const qrPanel = document.createElement("div");
     qrPanel.className = "qr-panel";
     const canvas = document.createElement("canvas");
@@ -108,7 +154,7 @@ export class SignalUi {
     const privacy = document.createElement("p");
     privacy.className = "privacy-note";
     privacy.textContent =
-      "Teile diese Verbindungsdaten nur mit den gewünschten Teilnehmern. Sie enthalten lokale Netzwerkdaten.";
+      "Share this connection data only with the intended participants. It contains local network data.";
 
     this.signalContent.append(instruction, actions, details, qrDetails);
 
@@ -116,7 +162,7 @@ export class SignalUi {
       const offlineNote = document.createElement("p");
       offlineNote.className = "privacy-note";
       offlineNote.textContent =
-        "Ohne Internet im Teilen-Menü Quick Share, AirDrop oder Bluetooth wählen. Der Link öffnet offline nur, wenn die App auf dem anderen Gerät bereits installiert oder zuvor vollständig geladen wurde.";
+        "Without internet, choose a local target such as Quick Share, AirDrop, or Bluetooth. The link opens offline only if the app is already installed or fully cached on the other device.";
       this.signalContent.append(offlineNote);
     }
 
@@ -144,7 +190,7 @@ export class SignalUi {
       void this.copyValue(
         sharedValue,
         codeField,
-        isInvite ? "Einladungslink kopiert." : "Antwortcode kopiert.",
+        isInvite ? "Invitation link copied." : "Answer code copied.",
       );
     });
 
@@ -178,14 +224,15 @@ export class SignalUi {
 
   scanSignal(expectedKind: "offer" | "answer"): Promise<ConnectionSignal> {
     this.scanner.stop();
+    this.resetCameraControls();
     this.scannerTitle.textContent =
-      expectedKind === "offer" ? "Einladung öffnen" : "Antwort eingeben";
+      expectedKind === "offer" ? "Open invitation" : "Enter answer";
     this.scannerStatus.textContent =
-      "Scanne den QR-Code oder füge die Verbindungsdaten unten ein.";
+      "Scan the QR code or paste the connection data below.";
     this.signalPasteLabel.textContent =
       expectedKind === "offer"
-        ? "Einladungslink oder Verbindungscode einfügen"
-        : "Antwortcode einfügen";
+        ? "Paste invitation link or connection code"
+        : "Paste answer code";
     this.signalPaste.value = "";
     this.qrImageInput.value = "";
 
@@ -220,8 +267,8 @@ export class SignalUi {
           if (signal.kind !== expectedKind) {
             throw new Error(
               expectedKind === "offer"
-                ? "Dieser Code ist eine Antwort, keine Einladung."
-                : "Dieser Code ist eine Einladung, keine Antwort.",
+                ? "This code is an answer, not an invitation."
+                : "This code is an invitation, not an answer.",
             );
           }
           finish(signal);
@@ -235,7 +282,7 @@ export class SignalUi {
         }
         settled = true;
         cleanup();
-        reject(new DOMException("Scan abgebrochen.", "AbortError"));
+        reject(new DOMException("Scan cancelled.", "AbortError"));
       };
       const onPaste = () => processCode(this.signalPaste.value);
       const onFile = () => {
@@ -243,7 +290,7 @@ export class SignalUi {
         if (!file) {
           return;
         }
-        this.scannerStatus.textContent = "QR-Bild wird gelesen …";
+        this.scannerStatus.textContent = "Reading QR image…";
         void scanQrImage(file).then(processCode).catch(fail);
       };
 
@@ -255,13 +302,14 @@ export class SignalUi {
         .start(processCode)
         .then(() => {
           if (!settled) {
+            const canRefocus = this.configureCameraControls();
             this.scannerStatus.textContent =
-              "Kamera aktiv. Halte den QR-Code vollständig und möglichst gerade in den Rahmen.";
+              `Camera active. Hold both devices 20–40 cm apart and keep the full QR code straight in the frame.${canRefocus ? " Tap the preview to refocus." : ""}`;
           }
         })
         .catch(() => {
           this.scannerStatus.textContent =
-            "Kamera nicht verfügbar. Du kannst ein QR-Bild auswählen oder die Verbindungsdaten einfügen.";
+            "Camera unavailable. You can choose a QR image or paste the connection data.";
         });
     });
   }
@@ -288,25 +336,70 @@ export class SignalUi {
     return button;
   }
 
+  private configureCameraControls(): boolean {
+    const controls = this.scanner.getControlState();
+    this.scannerRefocus.hidden = !controls.canRefocus;
+    this.scannerTorch.hidden = !controls.canUseTorch;
+    this.scannerTorch.setAttribute("aria-pressed", "false");
+    this.scannerTorch.textContent = "Light";
+
+    if (controls.zoom) {
+      this.scannerZoom.min = String(controls.zoom.min);
+      this.scannerZoom.max = String(controls.zoom.max);
+      this.scannerZoom.step = String(controls.zoom.step);
+      this.scannerZoom.value = String(controls.zoom.value);
+      this.scannerZoomControl.hidden = false;
+    } else {
+      this.scannerZoomControl.hidden = true;
+    }
+
+    this.scannerControls.hidden =
+      !controls.canRefocus && !controls.canUseTorch && !controls.zoom;
+    return controls.canRefocus;
+  }
+
+  private resetCameraControls(): void {
+    this.scannerControls.hidden = true;
+    this.scannerRefocus.hidden = true;
+    this.scannerZoomControl.hidden = true;
+    this.scannerTorch.hidden = true;
+    this.scannerTorch.setAttribute("aria-pressed", "false");
+    this.scannerTorch.textContent = "Light";
+  }
+
+  private async refocusCamera(): Promise<void> {
+    if (!this.scanner.getControlState().canRefocus) {
+      return;
+    }
+    try {
+      await this.scanner.refocus();
+      this.scannerStatus.textContent =
+        "Refocusing. Keep the QR code steady and fully inside the frame.";
+    } catch {
+      this.scannerStatus.textContent =
+        "Autofocus could not be restarted. Try moving the devices farther apart and use zoom.";
+    }
+  }
+
   private async shareSignal(
     signal: ConnectionSignal,
     sharedValue: string,
   ): Promise<void> {
     if (!navigator.share) {
-      throw new Error("Teilen wird von diesem Browser nicht unterstützt.");
+      throw new Error("Sharing is not supported by this browser.");
     }
 
     if (signal.kind === "offer") {
       await navigator.share({
-        title: "Einladung zu table-telephones",
+        title: "Invitation to table-telephones",
         text: createInviteShareText(signal, sharedValue),
       });
       return;
     }
 
     await navigator.share({
-      title: "Antwort für table-telephones",
-      text: `Antwortcode für table-telephones:\n${sharedValue}`,
+      title: "Answer for table-telephones",
+      text: `Answer code for table-telephones:\n${sharedValue}`,
     });
   }
 
@@ -322,11 +415,11 @@ export class SignalUi {
       fallbackField.closest("details")?.setAttribute("open", "");
       fallbackField.focus();
       fallbackField.select();
-      this.notify("Bitte den markierten Text manuell kopieren.");
+      this.notify("Copy the selected text manually.");
     }
   }
 
   private errorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : "Die Aktion ist fehlgeschlagen.";
+    return error instanceof Error ? error.message : "The action failed.";
   }
 }

@@ -41,11 +41,11 @@ function validateSender(value: unknown): Sender | undefined {
     return undefined;
   }
   if (!isPlainObject(value) || !isValidId(value.id) || typeof value.name !== "string") {
-    throw new Error("Ungültige Absenderdaten.");
+    throw new Error("Invalid sender data.");
   }
   const name = normalizeName(value.name);
   if (!name) {
-    throw new Error("Ungültiger Absendername.");
+    throw new Error("Invalid sender name.");
   }
   return { id: value.id, name };
 }
@@ -57,7 +57,7 @@ function validateTimestamp(value: unknown): number {
     value < 0 ||
     value > 8_640_000_000_000_000
   ) {
-    throw new Error("Ungültiger Zeitstempel.");
+    throw new Error("Invalid timestamp.");
   }
   return Math.round(value);
 }
@@ -69,7 +69,7 @@ function validateTextPacket(value: Record<string, unknown>): TextPacket {
     text.length === 0 ||
     text.length > MAX_TEXT_LENGTH
   ) {
-    throw new Error("Ungültige Textnachricht.");
+    throw new Error("Invalid text message.");
   }
 
   const sender = validateSender(value.sender);
@@ -103,7 +103,7 @@ function validateImageStart(value: Record<string, unknown>): ImageStartPacket {
     value.height < 1 ||
     value.height > MAX_RECEIVED_IMAGE_DIMENSION
   ) {
-    throw new Error("Ungültige Bildmetadaten.");
+    throw new Error("Invalid image metadata.");
   }
 
   const sender = validateSender(value.sender);
@@ -125,7 +125,7 @@ function validateImageStart(value: Record<string, unknown>): ImageStartPacket {
 
 function validateRoomState(value: Record<string, unknown>): RoomStatePacket {
   if (!Array.isArray(value.participants) || value.participants.length > MAX_PARTICIPANTS) {
-    throw new Error("Ungültige Teilnehmerliste.");
+    throw new Error("Invalid participant list.");
   }
 
   const ids = new Set<string>();
@@ -136,11 +136,11 @@ function validateRoomState(value: Record<string, unknown>): RoomStatePacket {
       typeof entry.name !== "string" ||
       typeof entry.isHost !== "boolean"
     ) {
-      throw new Error("Ungültige Teilnehmerdaten.");
+      throw new Error("Invalid participant data.");
     }
     const name = normalizeName(entry.name);
     if (!name || ids.has(entry.id)) {
-      throw new Error("Ungültige oder doppelte Teilnehmerdaten.");
+      throw new Error("Invalid or duplicate participant data.");
     }
     ids.add(entry.id);
     return { id: entry.id, name, isHost: entry.isHost };
@@ -151,18 +151,18 @@ function validateRoomState(value: Record<string, unknown>): RoomStatePacket {
 
 export function parseControlPacket(raw: string): ControlPacket {
   if (new Blob([raw]).size > MAX_CONTROL_BYTES) {
-    throw new Error("Steuernachricht ist zu groß.");
+    throw new Error("Control message is too large.");
   }
 
   let value: unknown;
   try {
     value = JSON.parse(raw);
   } catch {
-    throw new Error("Steuernachricht ist kein gültiges JSON.");
+    throw new Error("Control message is not valid JSON.");
   }
 
   if (!isPlainObject(value) || value.v !== APP_PROTOCOL_VERSION) {
-    throw new Error("Unbekannte Protokollversion.");
+    throw new Error("Unknown protocol version.");
   }
 
   switch (value.type) {
@@ -172,13 +172,13 @@ export function parseControlPacket(raw: string): ControlPacket {
       return validateImageStart(value);
     case "image-end":
       if (!isValidId(value.id)) {
-        throw new Error("Ungültiger Bildabschluss.");
+        throw new Error("Invalid image ending.");
       }
       return { v: APP_PROTOCOL_VERSION, type: "image-end", id: value.id };
     case "room-state":
       return validateRoomState(value);
     default:
-      throw new Error("Unbekannter Nachrichtentyp.");
+      throw new Error("Unknown message type.");
   }
 }
 
@@ -202,7 +202,7 @@ export class ChannelTransport {
       callbacks.onClose();
     });
     this.channel.addEventListener("error", () => {
-      callbacks.onProtocolError("Die Datenverbindung ist fehlgeschlagen.");
+      callbacks.onProtocolError("The data connection failed.");
     });
     this.channel.addEventListener("message", (event: MessageEvent<unknown>) => {
       this.incomingQueue = this.incomingQueue
@@ -257,7 +257,7 @@ export class ChannelTransport {
 
   private assertOpen(): void {
     if (!this.isOpen()) {
-      throw new Error("Die Datenverbindung ist nicht geöffnet.");
+      throw new Error("The data connection is not open.");
     }
   }
 
@@ -269,7 +269,7 @@ export class ChannelTransport {
     await new Promise<void>((resolve, reject) => {
       const timeout = window.setTimeout(() => {
         cleanup();
-        reject(new Error("Die Datenübertragung hat zu lange gedauert."));
+        reject(new Error("The data transfer took too long."));
       }, 15_000);
 
       const onLow = () => {
@@ -278,7 +278,7 @@ export class ChannelTransport {
       };
       const onClose = () => {
         cleanup();
-        reject(new Error("Die Datenverbindung wurde geschlossen."));
+        reject(new Error("The data connection was closed."));
       };
       const cleanup = () => {
         window.clearTimeout(timeout);
@@ -303,16 +303,16 @@ export class ChannelTransport {
     } else if (data instanceof Blob) {
       bytes = new Uint8Array<ArrayBuffer>(await data.arrayBuffer());
     } else {
-      throw new Error("Unbekanntes Binärformat.");
+      throw new Error("Unknown binary format.");
     }
 
     if (!this.incomingImage) {
-      throw new Error("Bilddaten ohne Metadaten empfangen.");
+      throw new Error("Image data received without metadata.");
     }
 
     this.incomingImage.receivedBytes += bytes.byteLength;
     if (this.incomingImage.receivedBytes > this.incomingImage.meta.byteLength) {
-      throw new Error("Zu viele Bilddaten empfangen.");
+      throw new Error("Too much image data received.");
     }
     this.incomingImage.chunks.push(bytes);
   }
@@ -320,7 +320,7 @@ export class ChannelTransport {
   private async handleControl(packet: ControlPacket): Promise<void> {
     if (packet.type === "image-start") {
       if (this.incomingImage) {
-        throw new Error("Überlappende Bildübertragung.");
+        throw new Error("Overlapping image transfer.");
       }
       this.incomingImage = { meta: packet, chunks: [], receivedBytes: 0 };
       return;
@@ -333,7 +333,7 @@ export class ChannelTransport {
         incoming.meta.id !== packet.id ||
         incoming.receivedBytes !== incoming.meta.byteLength
       ) {
-        throw new Error("Unvollständige Bildübertragung.");
+        throw new Error("Incomplete image transfer.");
       }
 
       const bytes = new Uint8Array(incoming.receivedBytes) as Uint8Array<ArrayBuffer>;
@@ -355,14 +355,14 @@ export class ChannelTransport {
     }
 
     if (this.incomingImage) {
-      throw new Error("Steuernachricht während einer Bildübertragung.");
+      throw new Error("Control message received during an image transfer.");
     }
 
     this.callbacks.onControl(packet);
   }
 
   private fail(error: unknown): void {
-    const message = error instanceof Error ? error.message : "Ungültige Daten empfangen.";
+    const message = error instanceof Error ? error.message : "Invalid data received.";
     this.callbacks.onProtocolError(message);
     this.close();
   }

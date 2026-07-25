@@ -23,11 +23,11 @@ export function createInviteShareText(
   inviteLink: string,
 ): string {
   return [
-    `${signal.host.name} lädt dich zu einem lokalen Chat mit table-telephones ein.`,
+    `${signal.host.name} invited you to a local chat with table-telephones.`,
     "",
-    `Einladungslink: ${inviteLink}`,
+    `Invitation link: ${inviteLink}`,
     "",
-    "Falls der Link offline nicht öffnet: Starte die bereits installierte App, wähle „Chat beitreten“ und füge diesen Verbindungscode ein:",
+    'If the link does not open offline, start the installed app, choose "Join a chat", and paste this connection code:',
     encodeSignal(signal),
   ].join("\n");
 }
@@ -52,7 +52,7 @@ export function readInviteLink(urlValue: string): OfferSignal | null {
     return null;
   }
   if (rawFragment.length > MAX_INVITE_FRAGMENT_LENGTH) {
-    throw new Error("Der Einladungslink ist zu groß.");
+    throw new Error("The invitation link is too large.");
   }
 
   const inviteValues = new URLSearchParams(rawFragment).getAll(INVITE_FRAGMENT_KEY);
@@ -60,12 +60,12 @@ export function readInviteLink(urlValue: string): OfferSignal | null {
     return null;
   }
   if (inviteValues.length !== 1) {
-    throw new Error("Der Einladungslink ist nicht eindeutig.");
+    throw new Error("The invitation link is ambiguous.");
   }
 
   const signal = decodeSignal(inviteValues[0] ?? "");
   if (signal.kind !== "offer") {
-    throw new Error("Dieser Link enthält keine Einladung.");
+    throw new Error("This link does not contain an invitation.");
   }
   return signal;
 }

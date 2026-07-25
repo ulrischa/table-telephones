@@ -34,7 +34,7 @@ describe("data-channel protocol validation", () => {
           createdAt: 1,
         }),
       ),
-    ).toThrow(/Textnachricht/);
+    ).toThrow(/text message/);
   });
 
   it("rejects duplicate participants", () => {
@@ -49,7 +49,7 @@ describe("data-channel protocol validation", () => {
           ],
         }),
       ),
-    ).toThrow(/doppelte/);
+    ).toThrow(/duplicate/);
   });
 });
 

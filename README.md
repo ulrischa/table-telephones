@@ -1,73 +1,76 @@
 # table-telephones
 
-`table-telephones` ist eine installierbare PWA für lokale Gruppenchats mit Text
-und Bildern. Die App benötigt weder Chat-Backend noch Signalisierungs-, STUN-
-oder TURN-Server. Nach dem ersten vollständigen Laden über HTTPS kann sie ohne
-Internetzugang verwendet werden.
+`table-telephones` is an installable PWA for local group chats with text and
+images. It needs no chat backend and no signaling, STUN, or TURN server. After
+one complete load over HTTPS, the app can be used without internet access.
 
-## Funktionen
+## Features
 
-- Text- und Bildchat für zwei oder mehr Teilnehmer
-- direkte WebRTC-DataChannel-Verbindungen im selben WLAN oder Smartphone-Hotspot
-- teilbarer Einladungslink mit eingebettetem Verbindungscode und Rohcode-Fallback
-- Namensabfrage und direkte Annahme nach dem Öffnen des Einladungslinks
-- Antwortcode per Web Share oder Zwischenablage; QR-Scan weiterhin als Fallback
-- installierbare und offlinefähige PWA
-- keine Konten, Datenbank, Werbung, Tracker oder externen Ressourcen
-- keine dauerhafte Speicherung von Nachrichten und Bildern
-- responsive und tastaturbedienbare Oberfläche
+- text and image chat for two or more participants
+- direct WebRTC DataChannel connections on the same Wi-Fi network or smartphone
+  hotspot
+- shareable invitation link with an embedded connection code and raw-code
+  fallback
+- name prompt and direct acceptance after opening an invitation link
+- answer code sharing through Web Share or the clipboard, with QR scanning as a
+  fallback
+- camera autofocus request, tap-to-refocus, and optional zoom and light controls
+  where the device supports them
+- installable, offline-capable PWA
+- no accounts, database, advertising, tracking, or external resources
+- no persistent storage of messages or images
+- responsive, keyboard-accessible interface
 
-## So funktioniert die Verbindung
+## How connections work
 
-1. Alle Geräte öffnen die App im selben WLAN oder Smartphone-Hotspot.
-2. Der Raum-Ersteller gibt einen Namen ein, startet einen Chat und teilt den
-   Einladungslink.
-3. Ein Teilnehmer öffnet den Link, gibt seinen Namen ein und nimmt die Einladung
-   an.
-4. Der Teilnehmer teilt den erzeugten Antwortcode zurück. Der Raum-Ersteller
-   fügt ihn in der weiterhin geöffneten App ein. Danach öffnet sich die direkte
-   WebRTC-Verbindung.
-5. Für jeden weiteren Teilnehmer wird der Vorgang wiederholt.
+1. Open the app on every device connected to the same Wi-Fi network or
+   smartphone hotspot.
+2. The room host enters a name, starts a chat, and shares the invitation link.
+3. A participant opens the link, enters a name, and accepts the invitation.
+4. The participant shares the generated answer code back. The host enters or
+   scans it in the still-open app. The direct WebRTC connection then opens.
+5. Repeat the process for every additional participant.
 
-Einladungslink und Antwortcode lassen sich über die Web Share API oder die
-Zwischenablage weitergeben. Für eine Übertragung ohne Internet muss im
-systemeigenen Teilen-Menü ein lokales Ziel wie Quick Share, AirDrop oder
-Bluetooth gewählt werden. Der geteilte Einladungstext enthält zusätzlich den
-rohen Verbindungscode als Fallback. QR-Codes werden hochauflösend und
-modulgenau erzeugt und können direkt per Kamera gelesen oder als Bild ausgewählt
-werden. Die Einladungen sind 15 Minuten gültig.
+Invitation links and answer codes can be sent through the Web Share API or
+copied to the clipboard. For transfer without internet access, select a local
+share target such as Quick Share, AirDrop, or Bluetooth in the system share
+sheet. Shared invitation text also contains the raw connection code as a
+fallback. Invitations expire after 15 minutes.
 
-Ein gemeinsames WLAN transportiert einen Einladungslink nicht selbst. Ohne
-Internet kann das zweite Gerät den Link nur öffnen, wenn die PWA dort bereits
-installiert oder zuvor vollständig geladen und vom Service Worker
-zwischengespeichert wurde. Andernfalls müssen beide Geräte die App zunächst
-einmal mit Internetzugang laden.
+QR codes use a high-resolution, module-aligned rendering. For reliable camera
+scanning, keep the entire code visible, hold the devices about 20–40 cm apart,
+and avoid reflections. Tap the camera preview to refocus. On supported devices,
+the scanner also exposes zoom and light controls. Selecting a saved QR image
+remains available as a fallback.
 
-Der Einladungslink speichert den Verbindungscode im URL-Fragment. Dieses
-Fragment wird nicht an den Webserver übertragen und nach dem Einlesen aus der
-Adresszeile entfernt.
+A shared Wi-Fi network does not transfer an invitation link by itself. Without
+internet access, the second device can open the link only if the PWA is already
+installed or was previously loaded completely and cached by the service worker.
+Otherwise, both devices must load the app once with internet access.
 
-Bei einem Gruppenchat ist der Raum-Ersteller der lokale Relay-Peer: Jeder
-Teilnehmer ist direkt mit ihm verbunden, und er leitet Nachrichten an die
-übrigen Teilnehmer weiter. Deshalb muss sein Gerät während des Chats verbunden
-bleiben. Eine nachträgliche Zustellung gibt es nicht.
+The connection code is stored in the invitation URL fragment. The fragment is
+not sent to the web server and is removed from the address bar after it is read.
 
-## Voraussetzungen
+In a group chat, the room host acts as the local relay peer. Every participant
+connects directly to the host, which relays messages to the other participants.
+The host device must therefore stay connected. There is no delayed delivery.
 
-- aktueller Browser mit WebRTC DataChannel
-- gemeinsames lokales Netz ohne Client- oder AP-Isolation
-- HTTPS für Installation, Service Worker, Kamera und Web Share
-- gegebenenfalls Freigabe für Kamera und lokales Netzwerk im Browser oder
-  Betriebssystem
+## Requirements
 
-Kamera und Web Share sind optional: Zwischenablage, QR-Bilder und
-Verbindungscodes dienen als Fallback. Manche Firmen-, Gäste- und öffentliche
-WLANs isolieren verbundene Geräte. In solchen Netzen kann WebRTC trotz
-korrektem Signalaustausch keine direkte Verbindung aufbauen.
+- a current browser with WebRTC DataChannel support
+- a shared local network without client or AP isolation
+- HTTPS for installation, service workers, camera access, and Web Share
+- camera and local-network permission in the browser or operating system where
+  required
 
-## Entwicklung
+Camera access and Web Share are optional. Clipboard input, QR images, and raw
+connection codes provide fallbacks. Some corporate, guest, and public Wi-Fi
+networks isolate connected devices. WebRTC cannot establish a direct connection
+on such networks even when signaling succeeds.
 
-Voraussetzung ist Node.js 22.12 oder neuer.
+## Development
+
+Node.js 22.12 or later is required.
 
 ```bash
 npm ci --ignore-scripts
@@ -75,52 +78,50 @@ npm run check
 npm run dev
 ```
 
-Produktions-Build erstellen:
+Create a production build:
 
 ```bash
 npm run build
 ```
 
-Lokale Vorschau des Builds starten:
+Preview the production build locally:
 
 ```bash
 npm run preview
 ```
 
-## Bereitstellung
+## Deployment
 
-Den Inhalt von `dist/` unverändert über HTTPS ausliefern. Relative Asset-Pfade
-ermöglichen auch die Bereitstellung in einem Unterverzeichnis.
+Serve the contents of `dist/` unchanged over HTTPS. Relative asset paths also
+allow deployment below a subdirectory.
 
-Für Sicherheitsheader enthält das Projekt:
+Security header examples are provided in:
 
-- `public/_headers` für kompatible Static Hosts
-- `deploy/nginx.conf.example` als nginx-Beispiel
-- `public/web.config` für IIS; die Datei wird in `dist/` übernommen
+- `public/_headers` for compatible static hosts
+- `deploy/nginx.conf.example` for nginx
+- `public/web.config` for IIS; it is copied into `dist/`
 
-Nach dem ersten erfolgreichen Laden speichert der Service Worker die App-Hülle
-lokal und liefert sie bei weiteren Aufrufen aus dem Cache. Dadurch lassen sich
-die installierte App und Einladungslinks später ohne Internet öffnen.
+After the first successful load, the service worker caches the application
+shell and serves subsequent requests from the cache. This allows the installed
+app and invitation links to open later without internet access.
 
-## Sicherheit und Datenschutz
+## Security and privacy
 
-- WebRTC verschlüsselt jede Peer-Verbindung mit DTLS.
-- Der Austausch von Einladungslink und Antwortcode ersetzt einen zentralen
-  Signalisierungsserver.
-- Bei Gruppen endet die Verschlüsselung jeweils beim Raum-Ersteller, da er die
-  Nachrichten an die anderen Peer-Verbindungen weiterleitet.
-- Texte werden ausschließlich als Text in das DOM eingefügt.
-- Bilder werden neu kodiert, auf 3 MB begrenzt und beim Empfang anhand von
-  Dateisignatur, MIME-Typ und tatsächlichen Abmessungen geprüft.
-- Verbindungsdaten, Protokollnachrichten, Namen, Texte, Bilder und
-  Teilnehmerlisten werden validiert und in ihrer Größe begrenzt.
-- Die App baut keine externen Verbindungen auf und speichert keine Chats
-  dauerhaft.
-- Eine restriktive Content Security Policy und weitere Sicherheitsheader sind
-  enthalten.
+- WebRTC encrypts every peer connection with DTLS.
+- Manual exchange of the invitation link and answer code replaces a centralized
+  signaling server.
+- In groups, encryption terminates at the room host because it relays messages
+  to the other peer connections.
+- Text is inserted into the DOM only as text.
+- Images are re-encoded, limited to 3 MB, and checked on receipt using their
+  file signature, MIME type, and actual dimensions.
+- Connection data, protocol messages, names, text, images, and participant
+  lists are validated and size-limited.
+- The app makes no external connections and stores no chat history.
+- A restrictive Content Security Policy and additional security headers are
+  included.
 
-Weitere Einzelheiten und bekannte Vertrauensgrenzen stehen in
-[SECURITY.md](SECURITY.md).
+See [SECURITY.md](SECURITY.md) for the trust model and known limitations.
 
 ## Tests
 
@@ -131,23 +132,22 @@ npm audit --audit-level=high
 npm audit signatures
 ```
 
-Die automatisierten Tests decken Signalcodierung, Dekompressionsgrenzen,
-Protokollvalidierung, XSS-Nutzdaten und Bildsignaturen ab. Oberfläche,
-QR-Fallback, Offline-Neuladen und mobile Darstellung wurden zusätzlich in
-Chromium geprüft.
+Automated tests cover signaling codecs, decompression limits, protocol
+validation, XSS payloads, image signatures, and module-aligned QR rendering.
+The interface, QR fallback, offline reload, and mobile layout should also be
+checked in a browser.
 
-Da Headless-Chromium in der verwendeten Testumgebung keine lokalen
-ICE-Kandidaten bereitstellt, muss die tatsächliche WLAN- oder
-Hotspot-Verbindung zusätzlich mit mindestens zwei physischen Geräten geprüft
-werden.
+Headless Chromium does not expose local ICE candidates in the test environment
+used for this project. The actual Wi-Fi or hotspot connection must therefore be
+verified with at least two physical devices.
 
-## Technische Grenzen
+## Technical limitations
 
-- keine Verbindung über unterschiedliche Netze, da STUN und TURN bewusst fehlen
-- keine automatische Gerätesuche; jede Verbindung benötigt weiterhin
-  Einladungs- und Antwortschritt
-- keine Chat-Historie und keine Zustellung an nicht verbundene Teilnehmer
-- Raum-Ersteller als Relay-Peer und Single Point of Failure bei Gruppen
-- Protokolllimit von 128 Teilnehmern einschließlich Raum-Ersteller; die
-  praktisch nutzbare Anzahl liegt abhängig von Gerät, Browser und Bildvolumen
-  meist deutlich darunter
+- no connections across different networks because STUN and TURN are
+  intentionally omitted
+- no automatic device discovery; every connection still requires an invitation
+  and an answer
+- no chat history or delivery to disconnected participants
+- room host is the relay peer and a single point of failure for groups
+- protocol limit of 128 participants including the host; the practical number
+  is usually much lower and depends on the device, browser, and image traffic

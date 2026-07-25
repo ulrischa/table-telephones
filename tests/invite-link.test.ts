@@ -92,7 +92,7 @@ describe("invite links", () => {
     }).toString();
 
     expect(() => readInviteLink(url.toString())).toThrow(
-      /keine Einladung/,
+      /does not contain an invitation/,
     );
   });
 
@@ -103,7 +103,7 @@ describe("invite links", () => {
     fragment.append("invite", encodeSignal(offer));
     url.hash = fragment.toString();
 
-    expect(() => readInviteLink(url.toString())).toThrow(/nicht eindeutig/);
+    expect(() => readInviteLink(url.toString())).toThrow(/ambiguous/);
   });
 
   it("does not mistake unrelated fragments for invitations", () => {

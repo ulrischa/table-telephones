@@ -688,7 +688,7 @@ textarea {
 
 .qr-panel canvas {
   display: block;
-  width: min(100%, 22.5rem) !important;
+  width: min(100%, var(--qr-display-size, 22.5rem)) !important;
   height: auto !important;
   image-rendering: pixelated;
 }
@@ -739,6 +739,7 @@ textarea {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  cursor: pointer;
 }
 
 .scanner-corners {
@@ -755,6 +756,37 @@ textarea {
   color: var(--ink-soft);
   font-size: 0.85rem;
   line-height: 1.4;
+}
+
+.scanner-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.scanner-controls[hidden] {
+  display: none;
+}
+
+.scanner-controls .button {
+  flex: 0 0 auto;
+}
+
+.scanner-zoom-control {
+  display: flex;
+  flex: 1 1 10rem;
+  gap: 0.65rem;
+  align-items: center;
+  min-width: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.scanner-zoom-control input {
+  min-width: 5rem;
+  margin: 0;
 }
 
 .alternative-input {

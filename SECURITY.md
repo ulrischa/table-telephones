@@ -1,44 +1,46 @@
 # Security
 
-## Unterstützte Nutzung
+## Supported use
 
-Die App ist für kurzlebige Chats in einem vertrauenswürdigen lokalen WLAN oder
-Hotspot gedacht. Sie ersetzt keinen Messenger mit verifizierten Konten,
-Schlüsselverwaltung, Ende-zu-Ende-verschlüsselter dauerhafter Historie oder
-anonymer Kommunikation.
+The app is intended for short-lived chats on a trusted local Wi-Fi network or
+hotspot. It is not a replacement for a messenger with verified accounts, key
+management, a persistent end-to-end encrypted history, or anonymous
+communication.
 
-## Vertrauensgrenzen
+## Trust boundaries
 
-- Einladungslinks, QR-Codes und eingefügte Verbindungscodes sind nicht
-  vertrauenswürdig.
-- Jeder DataChannel-Peer kann manipulierte Protokollnachrichten senden.
-- Ausgewählte und empfangene Bilder sind nicht vertrauenswürdig.
-- Bei Gruppen sieht und relayed der Raum-Ersteller alle Nachrichten.
+- Invitation links, QR codes, and pasted connection codes are untrusted input.
+- Every DataChannel peer can send manipulated protocol messages.
+- Selected and received images are untrusted input.
+- In a group, the room host can see and relay every message.
 
-## Schutzmaßnahmen
+## Security controls
 
-- kein Backend, keine Datenbank, kein Tracking und keine externen Requests
-- WebRTC DTLS für Transportverschlüsselung
-- keine ICE-Server und dadurch keine Internet-Relay-Verbindungen
-- streng validierte, komprimierte Signalcodes mit Dekompressionslimit
-- Einladungsdaten ausschließlich im URL-Fragment, das nicht an den Webserver
-  gesendet und nach dem Einlesen aus der Adresszeile entfernt wird
-- Größenlimits für Text, Steuerpakete, Bilder und Teilnehmerlisten
-- 16-KB-Bildblöcke mit Backpressure auf dem DataChannel
-- Rasterbilder ausschließlich als JPEG, PNG oder WebP; kein SVG
-- sichere DOM-Ausgabe ohne `innerHTML`
-- restriktive CSP, Permissions Policy und weitere HTTP-Sicherheitsheader
-- kein dauerhafter Nachrichten- oder Bildspeicher
+- no backend, database, tracking, or external requests
+- WebRTC DTLS transport encryption
+- no ICE servers and therefore no internet relay connections
+- strictly validated compressed signaling codes with a decompression limit
+- invitation data stored only in the URL fragment, which is not sent to the web
+  server and is removed from the address bar after being read
+- size limits for text, control packets, images, and participant lists
+- 16 KB image chunks with DataChannel backpressure
+- raster images restricted to JPEG, PNG, and WebP; SVG is not accepted
+- safe DOM rendering without `innerHTML`
+- restrictive CSP, Permissions Policy, and additional HTTP security headers
+- no persistent message or image storage
 
-## Bekannte Grenzen
+## Known limitations
 
-- Ein abgegriffener gültiger Einladungslink, QR-Code oder Verbindungscode kann
-  einen unberechtigten Verbindungsversuch erlauben.
-- Namen sind nicht verifiziert und können nachgeahmt werden.
-- Der Raum-Ersteller ist bei Gruppenchats ein vertrauenswürdiger Relay-Peer.
-- Browser- und Bilddecoder-Sicherheitsupdates liegen außerhalb der App.
-- Schutz vor Funkstörungen oder gezielter Überlastung des lokalen Netzes ist nicht
-  möglich.
+- Anyone who obtains a valid invitation link, QR code, or connection code can
+  attempt to join before the invitation expires.
+- Display names are not verified and can be impersonated.
+- The room host is a trusted relay peer in group chats.
+- Browser and image-decoder security updates are outside the app's control.
+- The app cannot prevent radio interference or deliberate local-network
+  congestion.
+- QR recognition depends on the physical camera, screen, lighting, reflections,
+  browser support, and the distance between devices. Raw-code input and QR image
+  selection remain available when a live camera scan is unreliable.
 
-Sicherheitsrelevante Fehler sollten mit Browser, Betriebssystem, reproduzierbaren
-Schritten und ohne echte Chat-Inhalte gemeldet werden.
+Report security issues with the browser, operating system, reproducible steps,
+and no real chat content.

@@ -79,7 +79,7 @@ function createRoomEvents(): RoomEvents {
 
 function requireRoom(): LocalRoom {
   if (!room) {
-    throw new Error("Der Chat wurde noch nicht gestartet.");
+    throw new Error("The chat has not been started.");
   }
   return room;
 }
@@ -92,11 +92,11 @@ async function addPerson(): Promise<void> {
 
     const result = await signalUi.showCode({
       signal: offer,
-      step: "Schritt 1 von 2",
-      title: "Einladung teilen",
+      step: "Step 1 of 2",
+      title: "Share invitation",
       instruction:
-        "Teile den Einladungslink. Ohne Internet wählst du im Teilen-Menü eine lokale Übertragung wie Quick Share, AirDrop oder Bluetooth. Die andere Person öffnet ihn, gibt ihren Namen ein und sendet dir danach eine Antwort.",
-      nextLabel: "Antwort eingeben",
+        "Share the invitation link. Without internet, choose a local transfer method such as Quick Share, AirDrop, or Bluetooth. The other person opens it, enters a name, and sends an answer back.",
+      nextLabel: "Enter answer",
     });
 
     if (result !== "next") {
@@ -109,7 +109,7 @@ async function addPerson(): Promise<void> {
     if (error instanceof DOMException && error.name === "AbortError") {
       return;
     }
-    notify(error instanceof Error ? error.message : "Die Einladung ist fehlgeschlagen.");
+    notify(error instanceof Error ? error.message : "The invitation failed.");
   }
 }
 
@@ -129,13 +129,13 @@ async function joinRoom(invite: OfferSignal | null = null): Promise<void> {
     pendingInvite = null;
     chatView.show("guest");
     pendingAnswer = answer;
-    chatView.setHeaderAction("Antwort zeigen", true);
+    chatView.setHeaderAction("Show answer", true);
     await showGuestAnswer(answer);
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       return;
     }
-    notify(error instanceof Error ? error.message : "Der Beitritt ist fehlgeschlagen.");
+    notify(error instanceof Error ? error.message : "Joining failed.");
   }
 }
 
@@ -143,16 +143,16 @@ async function showGuestAnswer(answer: AnswerSignal): Promise<void> {
   try {
     await signalUi.showCode({
       signal: answer,
-      step: "Schritt 2 von 2",
-      title: "Antwort zurücksenden",
+      step: "Step 2 of 2",
+      title: "Send answer back",
       instruction:
-        "Teile oder kopiere den Antwortcode zurück zum Raum-Ersteller. Er fügt ihn in seiner geöffneten App ein.",
+        "Share or copy the answer code back to the room host. The host enters it in the open app.",
     });
   } catch (error) {
     notify(
       error instanceof Error
         ? error.message
-        : "Der Antwortcode konnte nicht angezeigt werden.",
+        : "The answer code could not be displayed.",
     );
   }
 }
@@ -174,10 +174,10 @@ function supportsRequiredApis(): boolean {
 
 function showPendingInvite(invite: OfferSignal): void {
   pendingInvite = invite;
-  inviteHostName.textContent = `Einladung von ${invite.host.name}`;
+  inviteHostName.textContent = `Invitation from ${invite.host.name}`;
   inviteNotice.hidden = false;
   hostButton.hidden = true;
-  joinButton.textContent = "Einladung annehmen";
+  joinButton.textContent = "Accept invitation";
   joinButton.classList.remove("button-secondary");
   joinButton.classList.add("button-primary");
   discardInviteButton.hidden = false;
@@ -188,7 +188,7 @@ function discardPendingInvite(): void {
   pendingInvite = null;
   inviteNotice.hidden = true;
   hostButton.hidden = false;
-  joinButton.textContent = "Chat beitreten";
+  joinButton.textContent = "Join a chat";
   joinButton.classList.remove("button-primary");
   joinButton.classList.add("button-secondary");
   discardInviteButton.hidden = true;
@@ -208,7 +208,7 @@ function loadInviteFromAddress(): void {
     notify(
       error instanceof Error
         ? error.message
-        : "Der Einladungslink konnte nicht gelesen werden.",
+        : "The invitation link could not be read.",
     );
   } finally {
     clearInviteFromAddress();
@@ -220,7 +220,7 @@ startForm.addEventListener("submit", (event) => {
 
   const name = normalizeName(displayName.value);
   if (!name) {
-    displayName.setCustomValidity("Bitte gib einen Namen ein.");
+    displayName.setCustomValidity("Enter your name.");
     displayName.reportValidity();
     return;
   }
@@ -228,7 +228,7 @@ startForm.addEventListener("submit", (event) => {
   displayName.value = name;
 
   if (!supportsRequiredApis()) {
-    notify("Dieser Browser unterstützt die benötigten WebRTC-Funktionen nicht.");
+    notify("This browser does not support the required WebRTC features.");
     return;
   }
 
@@ -282,7 +282,7 @@ installButton.addEventListener("click", () => {
 window.addEventListener("appinstalled", () => {
   installPrompt = null;
   installButton.hidden = true;
-  notify("table-telephones wurde installiert.");
+  notify("table-telephones was installed.");
 });
 
 window.addEventListener("pagehide", () => {
@@ -296,7 +296,7 @@ loadInviteFromAddress();
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     void navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(() => {
-      notify("Der Offline-Modus konnte nicht eingerichtet werden.");
+      notify("Offline mode could not be set up.");
     });
   });
 }

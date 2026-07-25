@@ -25,7 +25,7 @@ function canvasToBlob(
         if (blob) {
           resolve(blob);
         } else {
-          reject(new Error("Das Bild konnte nicht verarbeitet werden."));
+          reject(new Error("The image could not be processed."));
         }
       },
       type,
@@ -60,7 +60,7 @@ async function decodeImage(blob: Blob): Promise<DecodedImage> {
     };
   } catch {
     URL.revokeObjectURL(url);
-    throw new Error("Die Bilddatei ist beschädigt oder wird nicht unterstützt.");
+    throw new Error("The image file is corrupted or unsupported.");
   }
 }
 
@@ -106,22 +106,22 @@ function fitDimensions(width: number, height: number, maxDimension: number) {
 
 export async function prepareImage(file: File): Promise<PreparedImage> {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    throw new Error("Erlaubt sind JPEG-, PNG- und WebP-Bilder.");
+    throw new Error("JPEG, PNG, and WebP images are allowed.");
   }
   if (file.size === 0 || file.size > MAX_SOURCE_IMAGE_BYTES) {
-    throw new Error("Das Ausgangsbild darf höchstens 12 MB groß sein.");
+    throw new Error("The source image must not exceed 12 MB.");
   }
 
   const sourceBytes = new Uint8Array(await file.arrayBuffer());
   if (detectImageMime(sourceBytes) !== file.type) {
-    throw new Error("Dateityp und Bildinhalt stimmen nicht überein.");
+    throw new Error("The file type does not match the image content.");
   }
 
   let decoded: DecodedImage;
   try {
     decoded = await decodeImage(file);
   } catch {
-    throw new Error("Die Bilddatei ist beschädigt oder wird nicht unterstützt.");
+    throw new Error("The image file is corrupted or unsupported.");
   }
 
   try {
@@ -131,7 +131,7 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
       decoded.width > 20_000 ||
       decoded.height > 20_000
     ) {
-      throw new Error("Die Bildabmessungen sind ungültig.");
+      throw new Error("The image dimensions are invalid.");
     }
 
     const canvas = document.createElement("canvas");
@@ -145,7 +145,7 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
 
     const context = canvas.getContext("2d", { alpha: false });
     if (!context) {
-      throw new Error("Das Bild kann auf diesem Gerät nicht verarbeitet werden.");
+      throw new Error("This device cannot process the image.");
     }
 
     context.fillStyle = "#ffffff";
@@ -187,13 +187,13 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
     }
 
     if (!output || output.size > MAX_IMAGE_BYTES) {
-      throw new Error("Das Bild bleibt nach der Verkleinerung zu groß.");
+      throw new Error("The image remains too large after resizing.");
     }
 
     const bytes = new Uint8Array<ArrayBuffer>(await output.arrayBuffer());
     const detectedMime = detectImageMime(bytes);
     if (!detectedMime) {
-      throw new Error("Das verarbeitete Bild ist ungültig.");
+      throw new Error("The processed image is invalid.");
     }
 
     const blob = new Blob([bytes], { type: detectedMime });
@@ -216,12 +216,12 @@ export async function validateReceivedImage(
   declaredHeight: number,
 ): Promise<Blob> {
   if (bytes.byteLength === 0 || bytes.byteLength > MAX_IMAGE_BYTES) {
-    throw new Error("Das empfangene Bild ist zu groß.");
+    throw new Error("The received image is too large.");
   }
 
   const detectedMime = detectImageMime(bytes);
   if (!detectedMime || detectedMime !== declaredMime) {
-    throw new Error("Der empfangene Bildtyp ist ungültig.");
+    throw new Error("The received image type is invalid.");
   }
 
   const blob = new Blob([bytes], { type: detectedMime });
@@ -229,7 +229,7 @@ export async function validateReceivedImage(
   try {
     decoded = await decodeImage(blob);
   } catch {
-    throw new Error("Das empfangene Bild ist beschädigt.");
+    throw new Error("The received image is corrupted.");
   }
 
   try {
@@ -239,7 +239,7 @@ export async function validateReceivedImage(
       decoded.width > MAX_RECEIVED_IMAGE_DIMENSION ||
       decoded.height > MAX_RECEIVED_IMAGE_DIMENSION
     ) {
-      throw new Error("Die empfangenen Bildabmessungen sind ungültig.");
+      throw new Error("The received image dimensions are invalid.");
     }
   } finally {
     decoded.close();

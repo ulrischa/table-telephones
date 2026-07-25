@@ -60,18 +60,18 @@ describe("manual signaling codec", () => {
         ...offer,
         host: { ...offer.host, isHost: false },
       }),
-    ).toThrow(/Teilnehmer/);
+    ).toThrow(/participant/);
   });
 
   it("rejects non-table-telephones content", () => {
     expect(() => decodeSignal("https://example.org")).toThrow(
-      /kein table-telephones/,
+      /not a table-telephones/,
     );
   });
 
   it("bounds decompressed signal data", () => {
     const compressed = zlibSync(strToU8("x".repeat(MAX_SIGNAL_JSON_BYTES + 1)));
     const code = `${SIGNAL_PREFIX}${toBase64Url(compressed)}`;
-    expect(() => decodeSignal(code)).toThrow(/zu groß/);
+    expect(() => decodeSignal(code)).toThrow(/too large/);
   });
 });

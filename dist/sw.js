@@ -1,4 +1,4 @@
-const CACHE_NAME = "table-telephones-v3";
+const CACHE_NAME = "table-telephones-v4";
 const APP_SHELL = [
   "./",
   "./index.html",

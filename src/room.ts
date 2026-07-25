@@ -82,7 +82,7 @@ export class LocalRoom {
   constructor(role: Role, displayName: string, events: RoomEvents) {
     const name = normalizeName(displayName);
     if (!name) {
-      throw new Error("Bitte gib einen Namen ein.");
+      throw new Error("Enter your name.");
     }
 
     this.role = role;
@@ -92,7 +92,7 @@ export class LocalRoom {
 
     if (role === "host") {
       this.publishParticipants();
-      this.events.onStatus("Warte auf die erste Verbindung.", false);
+      this.events.onStatus("Waiting for the first connection.", false);
     }
   }
 
@@ -101,7 +101,7 @@ export class LocalRoom {
     this.assertNotClosed();
 
     if (this.pendingLinks.size >= 10) {
-      throw new Error("Zu viele offene Einladungen. Lade die App neu, um sie zu verwerfen.");
+      throw new Error("Too many open invitations. Reload the app to discard them.");
     }
 
     const connectionId = createId();
@@ -119,7 +119,7 @@ export class LocalRoom {
 
       const description = link.peerConnection.localDescription;
       if (!description?.sdp || description.type !== "offer") {
-        throw new Error("Die lokale Verbindungsbeschreibung fehlt.");
+        throw new Error("The local connection description is missing.");
       }
       this.assertLocalCandidate(description.sdp);
 
@@ -144,21 +144,21 @@ export class LocalRoom {
     this.assertNotClosed();
 
     if (answer.roomId !== this.roomId) {
-      throw new Error("Diese Antwort gehört zu einem anderen Chat.");
+      throw new Error("This answer belongs to a different chat.");
     }
     if (this.activeLinks.has(answer.guest.id)) {
-      throw new Error("Dieser Teilnehmer ist bereits verbunden.");
+      throw new Error("This participant is already connected.");
     }
 
     const link = this.pendingLinks.get(answer.connectionId);
     if (!link) {
-      throw new Error("Die zugehörige Einladung ist nicht mehr offen.");
+      throw new Error("The corresponding invitation is no longer open.");
     }
     if (Date.now() - link.createdAt > INVITE_TTL_MS) {
       this.pendingLinks.delete(link.connectionId);
       link.transport?.close();
       link.peerConnection.close();
-      throw new Error("Die Einladung ist abgelaufen. Erstelle eine neue.");
+      throw new Error("The invitation has expired. Create a new one.");
     }
 
     link.participant = answer.guest;
@@ -167,7 +167,7 @@ export class LocalRoom {
       await link.peerConnection.setRemoteDescription(answer.description);
     } catch {
       link.participant = null;
-      throw new Error("Die Antwort konnte nicht übernommen werden.");
+      throw new Error("The answer could not be applied.");
     }
   }
 
@@ -176,7 +176,7 @@ export class LocalRoom {
     this.assertNotClosed();
 
     if (this.guestHostLink) {
-      throw new Error("Es wurde bereits eine Einladung übernommen.");
+      throw new Error("An invitation has already been accepted.");
     }
 
     this.roomId = offer.roomId;
@@ -202,11 +202,11 @@ export class LocalRoom {
 
       const description = link.peerConnection.localDescription;
       if (!description?.sdp || description.type !== "answer") {
-        throw new Error("Die lokale Antwortbeschreibung fehlt.");
+        throw new Error("The local answer description is missing.");
       }
       this.assertLocalCandidate(description.sdp);
 
-      this.events.onStatus("Zeige die Antwort dem Raum-Ersteller.", false);
+      this.events.onStatus("Show the answer to the room host.", false);
       return {
         v: APP_PROTOCOL_VERSION,
         kind: "answer",
@@ -227,7 +227,7 @@ export class LocalRoom {
     this.assertNotClosed();
     const text = rawText.trim();
     if (!text || text.length > MAX_TEXT_LENGTH) {
-      throw new Error("Die Nachricht ist leer oder zu lang.");
+      throw new Error("The message is empty or too long.");
     }
 
     const message: ChatTextMessage = {
@@ -330,13 +330,13 @@ export class LocalRoom {
       onOpen: () => this.activateLink(link),
       onClose: () => this.deactivateLink(link),
       onProtocolError: (message) => {
-        this.events.onError(`Verbindung beendet: ${message}`);
+        this.events.onError(`Connection closed: ${message}`);
       },
       onControl: (packet) => this.handleControl(link, packet),
       onImage: (image) => {
         void this.handleImage(link, image).catch(() => {
           link.transport?.close();
-          this.events.onError("Ein ungültiges Bild wurde abgewiesen.");
+          this.events.onError("An invalid image was rejected.");
         });
       },
     });
@@ -352,15 +352,15 @@ export class LocalRoom {
     if (this.role === "host") {
       this.pendingLinks.delete(link.connectionId);
       this.activeLinks.set(link.participant.id, link);
-      this.events.onSystem(`${link.participant.name} ist dem Chat beigetreten.`);
+      this.events.onSystem(`${link.participant.name} joined the chat.`);
       this.publishParticipants();
       this.broadcastRoomState();
       this.events.onStatus(
-        `${this.activeLinks.size} ${this.activeLinks.size === 1 ? "Person ist" : "Personen sind"} verbunden.`,
+        `${this.activeLinks.size} ${this.activeLinks.size === 1 ? "person is" : "people are"} connected.`,
         true,
       );
     } else {
-      this.events.onStatus("Verbunden – ihr könnt jetzt schreiben.", true);
+      this.events.onStatus("Connected — you can start writing.", true);
       this.publishParticipants();
     }
   }
@@ -373,18 +373,18 @@ export class LocalRoom {
 
     if (this.role === "host" && link.participant) {
       this.activeLinks.delete(link.participant.id);
-      this.events.onSystem(`${link.participant.name} hat den Chat verlassen.`);
+      this.events.onSystem(`${link.participant.name} left the chat.`);
       this.publishParticipants();
       this.broadcastRoomState();
       const count = this.activeLinks.size;
       this.events.onStatus(
         count === 0
-          ? "Warte auf eine weitere Verbindung."
-          : `${count} ${count === 1 ? "Person ist" : "Personen sind"} verbunden.`,
+          ? "Waiting for another connection."
+          : `${count} ${count === 1 ? "person is" : "people are"} connected.`,
         count > 0,
       );
     } else {
-      this.events.onStatus("Verbindung zum Raum-Ersteller verloren.", false);
+      this.events.onStatus("Connection to the room host was lost.", false);
     }
   }
 
@@ -455,12 +455,12 @@ export class LocalRoom {
 
   private async handleImage(link: PeerLink, image: ReceivedImage): Promise<void> {
     if (!link.participant) {
-      throw new Error("Bild ohne Teilnehmer.");
+      throw new Error("Image without a participant.");
     }
 
     if (this.role === "host") {
       if (image.meta.sender) {
-        throw new Error("Gäste dürfen keinen Absender vorgeben.");
+        throw new Error("Guests cannot specify a sender.");
       }
 
       const message: ChatImageMessage = {
@@ -492,7 +492,7 @@ export class LocalRoom {
     }
 
     if (!image.meta.sender) {
-      throw new Error("Bild ohne Absender.");
+      throw new Error("Image without a sender.");
     }
     if (this.hasSeenMessage(image.meta.id)) {
       return;
@@ -529,12 +529,12 @@ export class LocalRoom {
 
     for (const participant of packet.participants) {
       if (participant.id !== this.self.id && !previous.has(participant.id)) {
-        this.events.onSystem(`${participant.name} ist dem Chat beigetreten.`);
+        this.events.onSystem(`${participant.name} joined the chat.`);
       }
     }
     for (const participant of this.guestParticipants) {
       if (participant.id !== this.self.id && !next.has(participant.id)) {
-        this.events.onSystem(`${participant.name} hat den Chat verlassen.`);
+        this.events.onSystem(`${participant.name} left the chat.`);
       }
     }
 
@@ -582,7 +582,7 @@ export class LocalRoom {
 
     const results = await Promise.allSettled(tasks);
     if (tasks.length > 0 && results.every((result) => result.status === "rejected")) {
-      throw new Error("Die Nachricht konnte nicht übertragen werden.");
+      throw new Error("The message could not be transferred.");
     }
   }
 
@@ -597,14 +597,14 @@ export class LocalRoom {
 
     const results = await Promise.allSettled(tasks);
     if (tasks.length > 0 && results.every((result) => result.status === "rejected")) {
-      throw new Error("Das Bild konnte nicht übertragen werden.");
+      throw new Error("The image could not be transferred.");
     }
   }
 
   private requireGuestTransport(): ChannelTransport {
     const transport = this.guestHostLink?.transport;
     if (!transport?.isOpen()) {
-      throw new Error("Noch keine Verbindung zum Raum-Ersteller.");
+      throw new Error("There is no connection to the room host yet.");
     }
     return transport;
   }
@@ -625,20 +625,20 @@ export class LocalRoom {
 
   private assertRole(expected: Role): void {
     if (this.role !== expected) {
-      throw new Error("Diese Aktion ist in der aktuellen Rolle nicht erlaubt.");
+      throw new Error("This action is not allowed for the current role.");
     }
   }
 
   private assertNotClosed(): void {
     if (this.closed) {
-      throw new Error("Der Chat wurde bereits geschlossen.");
+      throw new Error("The chat has already been closed.");
     }
   }
 
   private assertLocalCandidate(sdp: string): void {
     if (!/^a=candidate:/mu.test(sdp)) {
       throw new Error(
-        "Der Browser hat keine lokale Netzwerkverbindung freigegeben. Prüfe Browser- und WLAN-Berechtigungen.",
+        "The browser did not expose a local network connection. Check the browser and Wi-Fi permissions.",
       );
     }
   }

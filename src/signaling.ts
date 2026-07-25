@@ -32,7 +32,7 @@ function toBase64Url(bytes: Uint8Array): string {
 
 function fromBase64Url(value: string): Uint8Array {
   if (!/^[a-zA-Z0-9_-]+$/u.test(value)) {
-    throw new Error("Der Verbindungscode enthält ungültige Zeichen.");
+    throw new Error("The connection code contains invalid characters.");
   }
 
   const padding = "=".repeat((4 - (value.length % 4)) % 4);
@@ -52,7 +52,7 @@ function safeUnzlib(bytes: Uint8Array): Uint8Array {
   const decompressor = new Unzlib((chunk) => {
     totalLength += chunk.length;
     if (totalLength > MAX_SIGNAL_JSON_BYTES) {
-      throw new Error("Der Verbindungscode ist zu groß.");
+      throw new Error("The connection code is too large.");
     }
     chunks.push(chunk);
   });
@@ -73,7 +73,7 @@ function validateParticipant(
   expectedHost: boolean,
 ): PublicParticipant {
   if (!isPlainObject(value) || !isValidId(value.id)) {
-    throw new Error("Der Verbindungscode enthält ungültige Teilnehmerdaten.");
+    throw new Error("The connection code contains invalid participant data.");
   }
 
   const name = typeof value.name === "string" ? normalizeName(value.name) : "";
@@ -82,7 +82,7 @@ function validateParticipant(
     name.length > MAX_NAME_LENGTH ||
     value.isHost !== expectedHost
   ) {
-    throw new Error("Der Teilnehmername im Verbindungscode ist ungültig.");
+    throw new Error("The participant name in the connection code is invalid.");
   }
 
   return { id: value.id, name, isHost: expectedHost };
@@ -100,7 +100,7 @@ function validateDescription(
     value.sdp.length > MAX_SIGNAL_JSON_BYTES ||
     !value.sdp.startsWith("v=0")
   ) {
-    throw new Error("Die WebRTC-Beschreibung im Verbindungscode ist ungültig.");
+    throw new Error("The WebRTC description in the connection code is invalid.");
   }
 
   return { type: expectedType, sdp: value.sdp };
@@ -113,7 +113,7 @@ export function validateSignal(value: unknown): ConnectionSignal {
     !isValidId(value.roomId) ||
     !isValidId(value.connectionId)
   ) {
-    throw new Error("Der Verbindungscode ist nicht mit dieser App kompatibel.");
+    throw new Error("The connection code is not compatible with this app.");
   }
 
   if (value.kind === "offer") {
@@ -146,7 +146,7 @@ export function validateSignal(value: unknown): ConnectionSignal {
     return signal;
   }
 
-  throw new Error("Der Verbindungscode hat einen unbekannten Typ.");
+  throw new Error("The connection code has an unknown type.");
 }
 
 export function encodeSignal(signal: ConnectionSignal): string {
@@ -154,7 +154,7 @@ export function encodeSignal(signal: ConnectionSignal): string {
   const bytes = strToU8(json);
 
   if (bytes.length > MAX_SIGNAL_JSON_BYTES) {
-    throw new Error("Die Verbindungsdaten sind zu groß.");
+    throw new Error("The connection data is too large.");
   }
 
   const compressed = zlibSync(bytes, { level: 9 });
@@ -165,10 +165,10 @@ export function decodeSignal(rawValue: string): ConnectionSignal {
   const value = rawValue.trim();
 
   if (value.length === 0 || value.length > MAX_SIGNAL_TEXT_LENGTH) {
-    throw new Error("Der Verbindungscode ist leer oder zu groß.");
+    throw new Error("The connection code is empty or too large.");
   }
   if (!value.startsWith(SIGNAL_PREFIX)) {
-    throw new Error("Dies ist kein table-telephones-Verbindungscode.");
+    throw new Error("This is not a table-telephones connection code.");
   }
 
   const compressed = fromBase64Url(value.slice(SIGNAL_PREFIX.length));
@@ -178,7 +178,7 @@ export function decodeSignal(rawValue: string): ConnectionSignal {
   try {
     parsed = JSON.parse(strFromU8(jsonBytes));
   } catch {
-    throw new Error("Der Verbindungscode ist beschädigt.");
+    throw new Error("The connection code is corrupted.");
   }
 
   return validateSignal(parsed);

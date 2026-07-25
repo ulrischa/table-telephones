@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta
       name="description"
-      content="Lokaler Gruppenchat für Text und Bilder – ohne Server und nach der Installation ohne Internet."
+      content="Local group chat for text and images — serverless and offline after installation."
     >
     <meta
       http-equiv="Content-Security-Policy"
@@ -21,11 +21,11 @@
     <link rel="stylesheet" crossorigin href="./assets/app.css">
   </head>
   <body>
-    <a class="skip-link" href="#main">Zum Inhalt springen</a>
+    <a class="skip-link" href="#main">Skip to content</a>
 
     <div class="app-shell">
       <header class="app-header">
-        <a class="brand" href="./" aria-label="table-telephones – Startseite">
+        <a class="brand" href="./" aria-label="table-telephones — home">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 32 32">
               <path d="M7 9.5c3-3.1 15-3.1 18 0l-2.7 5.2c-1.6.8-3.2.2-4.1-1l-.4-1.3h-3.6l-.4 1.3c-.9 1.2-2.5 1.8-4.1 1L7 9.5Z"/>
@@ -39,10 +39,10 @@
         <div class="header-actions">
           <span class="privacy-badge">
             <span class="status-dot" aria-hidden="true"></span>
-            lokal
+            local
           </span>
           <button id="install-button" class="button button-quiet" type="button" hidden>
-            Installieren
+            Install
           </button>
           <button
             id="participants-button"
@@ -52,7 +52,7 @@
             hidden
           >
             <span id="participant-count">1</span>
-            <span class="visually-hidden">Teilnehmer anzeigen</span>
+            <span class="visually-hidden">Show participants</span>
           </button>
         </div>
       </header>
@@ -60,21 +60,21 @@
       <main id="main">
         <section id="welcome-view" class="welcome-view" aria-labelledby="welcome-title">
           <div class="welcome-copy">
-            <p class="eyebrow">Direkt von Gerät zu Gerät</p>
-            <h1 id="welcome-title">Reden, wenn das Netz nichts zu sagen hat.</h1>
+            <p class="eyebrow">Directly from device to device</p>
+            <h1 id="welcome-title">Talk when the network has nothing to say.</h1>
             <p>
-              Ein gemeinsames WLAN oder ein Smartphone-Hotspot genügt. Nachrichten und
-              Bilder bleiben zwischen den Geräten.
+              A shared Wi-Fi network or smartphone hotspot is enough. Messages and
+              images stay between your devices.
             </p>
           </div>
 
           <form id="start-form" class="start-panel">
             <div id="invite-notice" class="invite-notice" role="status" hidden>
-              <strong id="invite-host-name">Einladung</strong>
-              <span>Gib deinen Namen ein und nimm die Einladung an.</span>
+              <strong id="invite-host-name">Invitation</strong>
+              <span>Enter your name and accept the invitation.</span>
             </div>
 
-            <label for="display-name">Dein Name</label>
+            <label for="display-name">Your name</label>
             <input
               id="display-name"
               name="display-name"
@@ -82,16 +82,16 @@
               autocomplete="nickname"
               maxlength="40"
               required
-              placeholder="z. B. Uli"
+              placeholder="e.g. Uli"
             >
-            <p class="field-hint">Der Name ist nur für diesen Chat sichtbar.</p>
+            <p class="field-hint">Your name is visible only in this chat.</p>
 
             <div class="start-actions">
               <button id="host-button" class="button button-primary" type="submit" value="host">
-                Chat starten
+                Start a chat
               </button>
               <button id="join-button" class="button button-secondary" type="submit" value="join">
-                Chat beitreten
+                Join a chat
               </button>
               <button
                 id="discard-invite-button"
@@ -99,38 +99,38 @@
                 type="button"
                 hidden
               >
-                Einladung verwerfen
+                Discard invitation
               </button>
             </div>
           </form>
 
-          <ol class="how-it-works" aria-label="So funktioniert die Verbindung">
-            <li><strong>1</strong><span>App vorher einmal über HTTPS öffnen und installieren.</span></li>
-            <li><strong>2</strong><span>Alle Geräte mit demselben WLAN oder Hotspot verbinden.</span></li>
-            <li><strong>3</strong><span>Einladung lokal teilen, Namen eingeben und Antwortcode zurücksenden.</span></li>
+          <ol class="how-it-works" aria-label="How to connect">
+            <li><strong>1</strong><span>Open the app once over HTTPS and install it.</span></li>
+            <li><strong>2</strong><span>Connect every device to the same Wi-Fi network or hotspot.</span></li>
+            <li><strong>3</strong><span>Share the invitation locally, enter a name, and send the answer code back.</span></li>
           </ol>
         </section>
 
         <section id="chat-view" class="chat-view" aria-labelledby="chat-title" hidden>
           <div class="chat-heading">
             <div>
-              <p class="eyebrow">Lokaler Raum</p>
-              <h1 id="chat-title">Tischgespräch</h1>
+              <p class="eyebrow">Local room</p>
+              <h1 id="chat-title">Table talk</h1>
             </div>
             <button id="add-person-button" class="button button-secondary" type="button" hidden>
-              Person hinzufügen
+              Add a person
             </button>
           </div>
 
           <div id="connection-banner" class="connection-banner" role="status">
-            Verbindung wird vorbereitet …
+            Preparing connection…
           </div>
 
-          <ol id="message-list" class="message-list" aria-label="Nachrichten">
+          <ol id="message-list" class="message-list" aria-label="Messages">
             <li id="empty-chat" class="empty-chat">
               <span class="empty-icon" aria-hidden="true">↗↙</span>
-              <strong>Noch ist es still.</strong>
-              <span>Sobald jemand verbunden ist, könnt ihr losschreiben.</span>
+              <strong>It is quiet here.</strong>
+              <span>You can start writing as soon as someone connects.</span>
             </li>
           </ol>
 
@@ -141,7 +141,7 @@
                 <strong id="attachment-name"></strong>
                 <span id="attachment-size"></span>
               </div>
-              <button id="remove-attachment" class="icon-button" type="button" aria-label="Bild entfernen">
+              <button id="remove-attachment" class="icon-button" type="button" aria-label="Remove image">
                 ×
               </button>
             </div>
@@ -149,7 +149,7 @@
             <div class="composer-row">
               <label class="icon-button attachment-button" for="image-input">
                 <span aria-hidden="true">＋</span>
-                <span class="visually-hidden">Bild anhängen</span>
+                <span class="visually-hidden">Attach image</span>
               </label>
               <input
                 id="image-input"
@@ -157,17 +157,17 @@
                 accept="image/jpeg,image/png,image/webp"
                 hidden
               >
-              <label class="visually-hidden" for="message-input">Nachricht</label>
+              <label class="visually-hidden" for="message-input">Message</label>
               <textarea
                 id="message-input"
                 rows="1"
                 maxlength="4000"
                 enterkeyhint="send"
-                placeholder="Nachricht schreiben …"
+                placeholder="Write a message…"
                 disabled
               ></textarea>
               <button id="send-button" class="send-button" type="submit" disabled>
-                <span>Senden</span>
+                <span>Send</span>
                 <span aria-hidden="true">↑</span>
               </button>
             </div>
@@ -179,10 +179,10 @@
     <dialog id="signal-dialog" class="dialog signal-dialog">
       <form method="dialog" class="dialog-header">
         <div>
-          <p id="signal-step" class="eyebrow">Verbindung</p>
-          <h2 id="signal-title">Verbindungsdaten austauschen</h2>
+          <p id="signal-step" class="eyebrow">Connection</p>
+          <h2 id="signal-title">Exchange connection data</h2>
         </div>
-        <button class="icon-button" value="cancel" aria-label="Dialog schließen">×</button>
+        <button class="icon-button" value="cancel" aria-label="Close dialog">×</button>
       </form>
       <div id="signal-content" class="dialog-content"></div>
     </dialog>
@@ -190,32 +190,50 @@
     <dialog id="scanner-dialog" class="dialog scanner-dialog">
       <form method="dialog" class="dialog-header">
         <div>
-          <p class="eyebrow">Kamera</p>
-          <h2 id="scanner-title">QR-Code scannen</h2>
+          <p class="eyebrow">Camera</p>
+          <h2 id="scanner-title">Scan QR code</h2>
         </div>
-        <button id="scanner-close" class="icon-button" value="cancel" aria-label="Scanner schließen">×</button>
+        <button id="scanner-close" class="icon-button" value="cancel" aria-label="Close scanner">×</button>
       </form>
       <div class="dialog-content">
         <div class="scanner-frame">
-          <video id="scanner-video" playsinline muted aria-label="Kamerabild für QR-Code"></video>
+          <video id="scanner-video" playsinline muted aria-label="Camera preview for QR scanning"></video>
           <span class="scanner-corners" aria-hidden="true"></span>
         </div>
+        <div id="scanner-controls" class="scanner-controls" hidden>
+          <button id="scanner-refocus" class="button button-secondary" type="button" hidden>
+            Refocus
+          </button>
+          <label id="scanner-zoom-control" class="scanner-zoom-control" for="scanner-zoom" hidden>
+            <span>Zoom</span>
+            <input id="scanner-zoom" type="range">
+          </label>
+          <button
+            id="scanner-torch"
+            class="button button-secondary"
+            type="button"
+            aria-pressed="false"
+            hidden
+          >
+            Light
+          </button>
+        </div>
         <p id="scanner-status" class="scanner-status" role="status">
-          Halte den QR-Code vollständig in den Rahmen.
+          Keep the entire QR code inside the frame.
         </p>
         <div class="alternative-input">
-          <label class="button button-secondary" for="qr-image-input">QR-Bild auswählen</label>
+          <label class="button button-secondary" for="qr-image-input">Choose QR image</label>
           <input
             id="qr-image-input"
             type="file"
             accept="image/jpeg,image/png,image/webp"
             hidden
           >
-          <span>oder</span>
-          <label id="signal-paste-label" for="signal-paste">Verbindungsdaten einfügen</label>
+          <span>or</span>
+          <label id="signal-paste-label" for="signal-paste">Paste connection data</label>
           <textarea id="signal-paste" rows="3" spellcheck="false"></textarea>
           <button id="use-pasted-signal" class="button button-secondary" type="button">
-            Code verwenden
+            Use code
           </button>
         </div>
       </div>
@@ -224,24 +242,23 @@
     <dialog id="participants-dialog" class="dialog participants-dialog">
       <form method="dialog" class="dialog-header">
         <div>
-          <p class="eyebrow">Im Raum</p>
-          <h2>Teilnehmer</h2>
+          <p class="eyebrow">In the room</p>
+          <h2>Participants</h2>
         </div>
-        <button class="icon-button" value="cancel" aria-label="Dialog schließen">×</button>
+        <button class="icon-button" value="cancel" aria-label="Close dialog">×</button>
       </form>
       <div class="dialog-content">
         <ul id="participants-list" class="participants-list"></ul>
         <p class="privacy-note">
-          Der Raum-Ersteller leitet Nachrichten an die anderen Geräte weiter und muss
-          verbunden bleiben.
+          The room host relays messages to the other devices and must stay connected.
         </p>
       </div>
     </dialog>
 
     <dialog id="image-dialog" class="dialog image-dialog">
       <form method="dialog" class="dialog-header">
-        <h2>Bildansicht</h2>
-        <button class="icon-button" value="cancel" aria-label="Bildansicht schließen">×</button>
+        <h2>Image view</h2>
+        <button class="icon-button" value="cancel" aria-label="Close image view">×</button>
       </form>
       <div class="dialog-content">
         <img id="large-image" alt="">

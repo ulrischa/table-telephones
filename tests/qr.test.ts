@@ -1,8 +1,10 @@
 import QRCode from "qrcode";
 import { describe, expect, it } from "vitest";
 import {
+  createQrDisplaySize,
   createQrRenderOptions,
   decodeQrPixels,
+  getQrModuleCount,
 } from "../src/qr";
 import { encodeSignal } from "../src/signaling";
 import type { AnswerSignal } from "../src/types";
@@ -82,5 +84,18 @@ describe("QR rendering", () => {
     expect(options.margin).toBe(4);
     expect(rendered.size).toBeGreaterThanOrEqual(960);
     expect(decodeQrPixels(rendered.data, rendered.size, rendered.size)).toBe(code);
+  });
+
+  it("uses an integer number of physical pixels for every displayed module", () => {
+    const code = encodeSignal(answer);
+    const moduleCount = getQrModuleCount(code);
+    const devicePixelRatio = 3;
+    const displaySize = createQrDisplaySize(code, 296, devicePixelRatio);
+    const physicalModuleSize =
+      (displaySize * devicePixelRatio) / moduleCount;
+
+    expect(displaySize).toBeLessThanOrEqual(296);
+    expect(Number.isInteger(physicalModuleSize)).toBe(true);
+    expect(physicalModuleSize).toBeGreaterThanOrEqual(1);
   });
 });

@@ -102,7 +102,7 @@ export class ChatView {
     this.welcomeView.hidden = true;
     this.view.hidden = false;
     this.addPersonButton.hidden = role !== "host";
-    this.addPersonButton.textContent = "Person hinzufügen";
+    this.addPersonButton.textContent = "Add a person";
     this.participantsButton.hidden = false;
     this.messageInput.focus();
   }
@@ -126,14 +126,14 @@ export class ChatView {
     this.participantCount.textContent = String(participants.length);
     this.participantsButton.setAttribute(
       "aria-label",
-      `${participants.length} Teilnehmer anzeigen`,
+      `Show ${participants.length} participants`,
     );
     this.participantsList.replaceChildren(
       ...participants.map((participant) => {
         const item = document.createElement("li");
         const avatar = document.createElement("span");
         avatar.className = "participant-avatar";
-        avatar.textContent = participant.name.slice(0, 1).toLocaleUpperCase("de");
+        avatar.textContent = participant.name.slice(0, 1).toLocaleUpperCase("en");
         avatar.setAttribute("aria-hidden", "true");
 
         const text = document.createElement("span");
@@ -141,8 +141,8 @@ export class ChatView {
         name.textContent = participant.name;
         const role = document.createElement("small");
         role.textContent = [
-          participant.isSelf ? "Du" : "",
-          participant.isHost ? "Raum-Ersteller" : "",
+          participant.isSelf ? "You" : "",
+          participant.isHost ? "Room host" : "",
         ]
           .filter(Boolean)
           .join(" · ");
@@ -161,8 +161,8 @@ export class ChatView {
     bubble.body.append(text);
     this.appendMessage(bubble.item);
     this.liveRegion.textContent = message.isOwn
-      ? "Nachricht gesendet."
-      : `Neue Nachricht von ${message.sender.name}.`;
+      ? "Message sent."
+      : `New message from ${message.sender.name}.`;
   }
 
   addImage(message: ChatImageMessage): void {
@@ -173,10 +173,10 @@ export class ChatView {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "message-image-button";
-    button.setAttribute("aria-label", `Bild von ${message.sender.name} vergrößern`);
+    button.setAttribute("aria-label", `Enlarge image from ${message.sender.name}`);
     const image = document.createElement("img");
     image.src = url;
-    image.alt = `Geteiltes Bild von ${message.sender.name}`;
+    image.alt = `Shared image from ${message.sender.name}`;
     image.width = message.width;
     image.height = message.height;
     button.append(image);
@@ -188,8 +188,8 @@ export class ChatView {
     bubble.body.append(button);
     this.appendMessage(bubble.item);
     this.liveRegion.textContent = message.isOwn
-      ? "Bild gesendet."
-      : `Neues Bild von ${message.sender.name}.`;
+      ? "Image sent."
+      : `New image from ${message.sender.name}.`;
   }
 
   addSystem(message: string): void {
@@ -209,7 +209,7 @@ export class ChatView {
     const meta = document.createElement("div");
     meta.className = "message-meta";
     const name = document.createElement("strong");
-    name.textContent = isOwn ? "Du" : sender;
+    name.textContent = isOwn ? "You" : sender;
     const time = document.createElement("time");
     time.dateTime = new Date(timestamp).toISOString();
     time.textContent = formatTime(timestamp);
@@ -235,7 +235,7 @@ export class ChatView {
   private async setAttachment(file: File): Promise<void> {
     this.sending = true;
     this.updateSendButton();
-    this.attachmentName.textContent = "Bild wird vorbereitet …";
+    this.attachmentName.textContent = "Preparing image…";
     this.attachmentSize.textContent = "";
     this.attachmentPreview.hidden = false;
 
@@ -245,14 +245,14 @@ export class ChatView {
       this.preparedImage = prepared;
       this.attachmentUrl = URL.createObjectURL(prepared.blob);
       this.attachmentImage.src = this.attachmentUrl;
-      this.attachmentImage.alt = "Vorschau des ausgewählten Bildes";
-      this.attachmentName.textContent = prepared.fileName || "Bild";
+      this.attachmentImage.alt = "Preview of the selected image";
+      this.attachmentName.textContent = prepared.fileName || "Image";
       this.attachmentSize.textContent = formatBytes(prepared.bytes.byteLength);
       this.attachmentPreview.hidden = false;
     } catch (error) {
       this.clearAttachment();
       this.callbacks.onError(
-        error instanceof Error ? error.message : "Das Bild konnte nicht vorbereitet werden.",
+        error instanceof Error ? error.message : "The image could not be prepared.",
       );
     } finally {
       this.sending = false;
@@ -297,7 +297,7 @@ export class ChatView {
       }
     } catch (error) {
       this.callbacks.onError(
-        error instanceof Error ? error.message : "Die Nachricht konnte nicht gesendet werden.",
+        error instanceof Error ? error.message : "The message could not be sent.",
       );
     } finally {
       this.sending = false;
