@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta
+      name="description"
+      content="Lokaler Gruppenchat für Text und Bilder – ohne Server und nach der Installation ohne Internet."
+    >
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'"
+    >
+    <meta name="theme-color" content="#16382f">
+    <meta name="color-scheme" content="light">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <title>table-telephones</title>
+    <script type="module" crossorigin src="./assets/app.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/app.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+    <div class="app-shell">
+      <header class="app-header">
+        <a class="brand" href="./" aria-label="table-telephones – Startseite">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32">
+              <path d="M7 9.5c3-3.1 15-3.1 18 0l-2.7 5.2c-1.6.8-3.2.2-4.1-1l-.4-1.3h-3.6l-.4 1.3c-.9 1.2-2.5 1.8-4.1 1L7 9.5Z"/>
+              <path d="M10.2 16.2h11.6a2.7 2.7 0 0 1 2.7 2.7v5.6H7.5v-5.6a2.7 2.7 0 0 1 2.7-2.7Z"/>
+              <circle cx="16" cy="20.4" r="2.1"/>
+            </svg>
+          </span>
+          <span>table-telephones</span>
+        </a>
+
+        <div class="header-actions">
+          <span class="privacy-badge">
+            <span class="status-dot" aria-hidden="true"></span>
+            lokal
+          </span>
+          <button id="install-button" class="button button-quiet" type="button" hidden>
+            Installieren
+          </button>
+          <button
+            id="participants-button"
+            class="button button-quiet"
+            type="button"
+            aria-controls="participants-dialog"
+            hidden
+          >
+            <span id="participant-count">1</span>
+            <span class="visually-hidden">Teilnehmer anzeigen</span>
+          </button>
+        </div>
+      </header>
+
+      <main id="main">
+        <section id="welcome-view" class="welcome-view" aria-labelledby="welcome-title">
+          <div class="welcome-copy">
+            <p class="eyebrow">Direkt von Gerät zu Gerät</p>
+            <h1 id="welcome-title">Reden, wenn das Netz nichts zu sagen hat.</h1>
+            <p>
+              Ein gemeinsames WLAN oder ein Smartphone-Hotspot genügt. Nachrichten und
+              Bilder bleiben zwischen den Geräten.
+            </p>
+          </div>
+
+          <form id="start-form" class="start-panel">
+            <label for="display-name">Dein Name</label>
+            <input
+              id="display-name"
+              name="display-name"
+              type="text"
+              autocomplete="nickname"
+              maxlength="40"
+              required
+              placeholder="z. B. Uli"
+            >
+            <p class="field-hint">Der Name ist nur für diesen Chat sichtbar.</p>
+
+            <div class="start-actions">
+              <button id="host-button" class="button button-primary" type="submit" value="host">
+                Chat starten
+              </button>
+              <button id="join-button" class="button button-secondary" type="submit" value="join">
+                Chat beitreten
+              </button>
+            </div>
+          </form>
+
+          <ol class="how-it-works" aria-label="So funktioniert die Verbindung">
+            <li><strong>1</strong><span>App vorher einmal über HTTPS öffnen und installieren.</span></li>
+            <li><strong>2</strong><span>Alle Geräte mit demselben WLAN oder Hotspot verbinden.</span></li>
+            <li><strong>3</strong><span>Einladung und Antwort nacheinander als QR-Code scannen.</span></li>
+          </ol>
+        </section>
+
+        <section id="chat-view" class="chat-view" aria-labelledby="chat-title" hidden>
+          <div class="chat-heading">
+            <div>
+              <p class="eyebrow">Lokaler Raum</p>
+              <h1 id="chat-title">Tischgespräch</h1>
+            </div>
+            <button id="add-person-button" class="button button-secondary" type="button" hidden>
+              Person hinzufügen
+            </button>
+          </div>
+
+          <div id="connection-banner" class="connection-banner" role="status">
+            Verbindung wird vorbereitet …
+          </div>
+
+          <ol id="message-list" class="message-list" aria-label="Nachrichten">
+            <li id="empty-chat" class="empty-chat">
+              <span class="empty-icon" aria-hidden="true">↗↙</span>
+              <strong>Noch ist es still.</strong>
+              <span>Sobald jemand verbunden ist, könnt ihr losschreiben.</span>
+            </li>
+          </ol>
+
+          <form id="composer" class="composer">
+            <div id="attachment-preview" class="attachment-preview" hidden>
+              <img id="attachment-image" alt="">
+              <div>
+                <strong id="attachment-name"></strong>
+                <span id="attachment-size"></span>
+              </div>
+              <button id="remove-attachment" class="icon-button" type="button" aria-label="Bild entfernen">
+                ×
+              </button>
+            </div>
+
+            <div class="composer-row">
+              <label class="icon-button attachment-button" for="image-input">
+                <span aria-hidden="true">＋</span>
+                <span class="visually-hidden">Bild anhängen</span>
+              </label>
+              <input
+                id="image-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+              >
+              <label class="visually-hidden" for="message-input">Nachricht</label>
+              <textarea
+                id="message-input"
+                rows="1"
+                maxlength="4000"
+                enterkeyhint="send"
+                placeholder="Nachricht schreiben …"
+                disabled
+              ></textarea>
+              <button id="send-button" class="send-button" type="submit" disabled>
+                <span>Senden</span>
+                <span aria-hidden="true">↑</span>
+              </button>
+            </div>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="signal-dialog" class="dialog signal-dialog">
+      <form method="dialog" class="dialog-header">
+        <div>
+          <p id="signal-step" class="eyebrow">Verbindung</p>
+          <h2 id="signal-title">QR-Code austauschen</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Dialog schließen">×</button>
+      </form>
+      <div id="signal-content" class="dialog-content"></div>
+    </dialog>
+
+    <dialog id="scanner-dialog" class="dialog scanner-dialog">
+      <form method="dialog" class="dialog-header">
+        <div>
+          <p class="eyebrow">Kamera</p>
+          <h2 id="scanner-title">QR-Code scannen</h2>
+        </div>
+        <button id="scanner-close" class="icon-button" value="cancel" aria-label="Scanner schließen">×</button>
+      </form>
+      <div class="dialog-content">
+        <div class="scanner-frame">
+          <video id="scanner-video" playsinline muted aria-label="Kamerabild für QR-Code"></video>
+          <span class="scanner-corners" aria-hidden="true"></span>
+        </div>
+        <p id="scanner-status" class="scanner-status" role="status">
+          Halte den QR-Code vollständig in den Rahmen.
+        </p>
+        <div class="alternative-input">
+          <label class="button button-secondary" for="qr-image-input">QR-Bild auswählen</label>
+          <input
+            id="qr-image-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+          >
+          <span>oder</span>
+          <label for="signal-paste">Verbindungscode einfügen</label>
+          <textarea id="signal-paste" rows="3" spellcheck="false"></textarea>
+          <button id="use-pasted-signal" class="button button-secondary" type="button">
+            Code verwenden
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="participants-dialog" class="dialog participants-dialog">
+      <form method="dialog" class="dialog-header">
+        <div>
+          <p class="eyebrow">Im Raum</p>
+          <h2>Teilnehmer</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Dialog schließen">×</button>
+      </form>
+      <div class="dialog-content">
+        <ul id="participants-list" class="participants-list"></ul>
+        <p class="privacy-note">
+          Der Raum-Ersteller leitet Nachrichten an die anderen Geräte weiter und muss
+          verbunden bleiben.
+        </p>
+      </div>
+    </dialog>
+
+    <dialog id="image-dialog" class="dialog image-dialog">
+      <form method="dialog" class="dialog-header">
+        <h2>Bildansicht</h2>
+        <button class="icon-button" value="cancel" aria-label="Bildansicht schließen">×</button>
+      </form>
+      <div class="dialog-content">
+        <img id="large-image" alt="">
+      </div>
+    </dialog>
+
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+    <div id="live-region" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
+  </body>
+</html>

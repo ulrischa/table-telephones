@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="table-telephones">
+  <rect width="512" height="512" rx="104" fill="#16382f"/>
+  <circle cx="256" cy="256" r="178" fill="#f4f0e7"/>
+  <path fill="#16382f" d="M132 177c46-48 202-48 248 0l-38 75c-24 12-49 3-63-15l-6-20h-34l-6 20c-14 18-39 27-63 15l-38-75Z"/>
+  <path fill="#e9653b" d="M180 264h152c31 0 56 25 56 56v49H124v-49c0-31 25-56 56-56Z"/>
+  <circle cx="256" cy="314" r="30" fill="#f4f0e7"/>
+</svg>
