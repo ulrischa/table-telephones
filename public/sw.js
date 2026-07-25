@@ -1,4 +1,4 @@
-const CACHE_NAME = "table-telephones-v2";
+const CACHE_NAME = "table-telephones-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -54,34 +54,37 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then(async (response) => {
-          if (response.ok) {
-            const cache = await caches.open(CACHE_NAME);
-            await cache.put(scopedUrl("./index.html"), response.clone());
-          }
-          return response;
-        })
-        .catch(async () => {
-          const cached = await caches.match(scopedUrl("./index.html"));
-          return cached ?? Response.error();
-        }),
+      caches.match(scopedUrl("./index.html")).then(async (cached) => {
+        if (cached) {
+          return cached;
+        }
+
+        try {
+          return await fetch(request);
+        } catch {
+          return Response.error();
+        }
+      }),
     );
     return;
   }
 
   event.respondWith(
-    fetch(request)
-      .then(async (response) => {
+    caches.match(request).then(async (cached) => {
+      if (cached) {
+        return cached;
+      }
+
+      try {
+        const response = await fetch(request);
         if (response.ok && response.type === "basic") {
           const cache = await caches.open(CACHE_NAME);
           await cache.put(request, response.clone());
         }
         return response;
-      })
-      .catch(async () => {
-        const cached = await caches.match(request);
-        return cached ?? Response.error();
-      }),
+      } catch {
+        return Response.error();
+      }
+    }),
   );
 });

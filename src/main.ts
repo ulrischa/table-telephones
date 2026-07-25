@@ -95,7 +95,7 @@ async function addPerson(): Promise<void> {
       step: "Schritt 1 von 2",
       title: "Einladung teilen",
       instruction:
-        "Teile den Einladungslink. Die andere Person öffnet ihn, gibt ihren Namen ein und sendet dir danach eine Antwort.",
+        "Teile den Einladungslink. Ohne Internet wählst du im Teilen-Menü eine lokale Übertragung wie Quick Share, AirDrop oder Bluetooth. Die andere Person öffnet ihn, gibt ihren Namen ein und sendet dir danach eine Antwort.",
       nextLabel: "Antwort eingeben",
     });
 
@@ -290,6 +290,7 @@ window.addEventListener("pagehide", () => {
   room?.close();
 });
 
+window.addEventListener("hashchange", loadInviteFromAddress);
 loadInviteFromAddress();
 
 if (import.meta.env.PROD && "serviceWorker" in navigator) {

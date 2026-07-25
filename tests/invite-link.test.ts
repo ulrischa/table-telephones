@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createInviteLink,
+  createInviteShareText,
   decodeSharedSignal,
   hasInviteLink,
   readInviteLink,
@@ -65,6 +66,19 @@ describe("invite links", () => {
     expect(hasInviteLink(link)).toBe(true);
     expect(readInviteLink(link)).toEqual(offer);
     expect(decodeSharedSignal(link)).toEqual(offer);
+  });
+
+  it("includes a clickable link and raw offline fallback in shared text", () => {
+    const link = createInviteLink(
+      offer,
+      "https://example.org/table-telephones/",
+    );
+    const text = createInviteShareText(offer, link);
+
+    expect(text).toContain(link);
+    expect(text).toContain(encodeSignal(offer));
+    expect(text).toContain(offer.host.name);
+    expect(text).toContain("offline");
   });
 
   it("still accepts a raw connection code", () => {

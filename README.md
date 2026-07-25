@@ -9,7 +9,7 @@ Internetzugang verwendet werden.
 
 - Text- und Bildchat für zwei oder mehr Teilnehmer
 - direkte WebRTC-DataChannel-Verbindungen im selben WLAN oder Smartphone-Hotspot
-- teilbarer Einladungslink mit eingebettetem Verbindungscode
+- teilbarer Einladungslink mit eingebettetem Verbindungscode und Rohcode-Fallback
 - Namensabfrage und direkte Annahme nach dem Öffnen des Einladungslinks
 - Antwortcode per Web Share oder Zwischenablage; QR-Scan weiterhin als Fallback
 - installierbare und offlinefähige PWA
@@ -30,9 +30,18 @@ Internetzugang verwendet werden.
 5. Für jeden weiteren Teilnehmer wird der Vorgang wiederholt.
 
 Einladungslink und Antwortcode lassen sich über die Web Share API oder die
-Zwischenablage weitergeben. QR-Codes können für einen direkten Scan zwischen
-zwei Geräten weiterhin angezeigt, per Kamera gelesen oder als Bild ausgewählt
+Zwischenablage weitergeben. Für eine Übertragung ohne Internet muss im
+systemeigenen Teilen-Menü ein lokales Ziel wie Quick Share, AirDrop oder
+Bluetooth gewählt werden. Der geteilte Einladungstext enthält zusätzlich den
+rohen Verbindungscode als Fallback. QR-Codes werden hochauflösend und
+modulgenau erzeugt und können direkt per Kamera gelesen oder als Bild ausgewählt
 werden. Die Einladungen sind 15 Minuten gültig.
+
+Ein gemeinsames WLAN transportiert einen Einladungslink nicht selbst. Ohne
+Internet kann das zweite Gerät den Link nur öffnen, wenn die PWA dort bereits
+installiert oder zuvor vollständig geladen und vom Service Worker
+zwischengespeichert wurde. Andernfalls müssen beide Geräte die App zunächst
+einmal mit Internetzugang laden.
 
 Der Einladungslink speichert den Verbindungscode im URL-Fragment. Dieses
 Fragment wird nicht an den Webserver übertragen und nach dem Einlesen aus der
@@ -90,7 +99,8 @@ Für Sicherheitsheader enthält das Projekt:
 - `public/web.config` für IIS; die Datei wird in `dist/` übernommen
 
 Nach dem ersten erfolgreichen Laden speichert der Service Worker die App-Hülle
-lokal. Dadurch lässt sich die installierte App später ohne Internet öffnen.
+lokal und liefert sie bei weiteren Aufrufen aus dem Cache. Dadurch lassen sich
+die installierte App und Einladungslinks später ohne Internet öffnen.
 
 ## Sicherheit und Datenschutz
 

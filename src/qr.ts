@@ -3,22 +3,78 @@ import QRCode from "qrcode";
 import { ALLOWED_IMAGE_TYPES, MAX_QR_IMAGE_BYTES } from "./config";
 import { detectImageMime } from "./images";
 
-export async function renderQrCode(
-  canvas: HTMLCanvasElement,
-  value: string,
-): Promise<void> {
-  const width = Math.min(360, Math.max(240, window.innerWidth - 80));
-  await QRCode.toCanvas(canvas, value, {
-    errorCorrectionLevel: "L",
-    margin: 2,
-    width,
+const QR_ERROR_CORRECTION_LEVEL = "L" as const;
+const QR_MARGIN_MODULES = 4;
+const MIN_QR_RENDER_PIXELS = 960;
+
+interface DetectedBarcode {
+  rawValue?: string;
+}
+
+interface BarcodeDetectorLike {
+  detect(source: HTMLVideoElement): Promise<DetectedBarcode[]>;
+}
+
+interface BarcodeDetectorConstructor {
+  new (options: { formats: string[] }): BarcodeDetectorLike;
+}
+
+function createNativeQrDetector(): BarcodeDetectorLike | null {
+  const constructor = (
+    window as typeof window & {
+      BarcodeDetector?: BarcodeDetectorConstructor;
+    }
+  ).BarcodeDetector;
+
+  if (!constructor) {
+    return null;
+  }
+
+  try {
+    return new constructor({ formats: ["qr_code"] });
+  } catch {
+    return null;
+  }
+}
+
+export function createQrRenderOptions(value: string) {
+  const moduleCount =
+    QRCode.create(value, {
+      errorCorrectionLevel: QR_ERROR_CORRECTION_LEVEL,
+    }).modules.size +
+    QR_MARGIN_MODULES * 2;
+  const scale = Math.max(6, Math.ceil(MIN_QR_RENDER_PIXELS / moduleCount));
+
+  return {
+    errorCorrectionLevel: QR_ERROR_CORRECTION_LEVEL,
+    margin: QR_MARGIN_MODULES,
+    scale,
     color: {
       dark: "#102b24",
       light: "#ffffff",
     },
-  });
+  };
+}
+
+export async function renderQrCode(
+  canvas: HTMLCanvasElement,
+  value: string,
+): Promise<void> {
+  await QRCode.toCanvas(canvas, value, createQrRenderOptions(value));
   canvas.setAttribute("role", "img");
   canvas.setAttribute("aria-label", "QR-Code mit Verbindungsdaten");
+}
+
+export function decodeQrPixels(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+): string | null {
+  return (
+    jsQR(data, width, height, {
+      inversionAttempts: "attemptBoth",
+    })?.data ?? null
+  );
 }
 
 function decodeCanvas(canvas: HTMLCanvasElement): string | null {
@@ -28,11 +84,7 @@ function decodeCanvas(canvas: HTMLCanvasElement): string | null {
   }
 
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  return (
-    jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: "attemptBoth",
-    })?.data ?? null
-  );
+  return decodeQrPixels(imageData.data, imageData.width, imageData.height);
 }
 
 async function loadImage(file: File): Promise<{
@@ -112,6 +164,7 @@ export class CameraQrScanner {
   private animationFrame = 0;
   private lastScanAt = 0;
   private active = false;
+  private nativeDetector = createNativeQrDetector();
 
   constructor(video: HTMLVideoElement) {
     this.video = video;
@@ -132,32 +185,40 @@ export class CameraQrScanner {
       },
     });
     this.video.srcObject = this.stream;
-    await this.video.play();
+    try {
+      await this.video.play();
+    } catch (error) {
+      this.stop();
+      throw error;
+    }
     this.active = true;
+    this.lastScanAt = 0;
 
     const scanFrame = (time: number) => {
       if (!this.active) {
         return;
       }
 
-      if (
-        time - this.lastScanAt >= 120 &&
-        this.video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA
-      ) {
+      if (time - this.lastScanAt >= 160) {
         this.lastScanAt = time;
-        const maxWidth = 720;
-        const scale = Math.min(1, maxWidth / this.video.videoWidth);
-        this.canvas.width = Math.max(1, Math.round(this.video.videoWidth * scale));
-        this.canvas.height = Math.max(1, Math.round(this.video.videoHeight * scale));
-        const context = this.canvas.getContext("2d", { willReadFrequently: true });
-        context?.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-
-        const code = decodeCanvas(this.canvas);
-        if (code) {
-          this.stop();
-          onCode(code);
-          return;
-        }
+        void this.decodeVideoFrame()
+          .then((code) => {
+            if (!this.active) {
+              return;
+            }
+            if (code) {
+              this.stop();
+              onCode(code);
+              return;
+            }
+            this.animationFrame = requestAnimationFrame(scanFrame);
+          })
+          .catch(() => {
+            if (this.active) {
+              this.animationFrame = requestAnimationFrame(scanFrame);
+            }
+          });
+        return;
       }
 
       this.animationFrame = requestAnimationFrame(scanFrame);
@@ -166,10 +227,53 @@ export class CameraQrScanner {
     this.animationFrame = requestAnimationFrame(scanFrame);
   }
 
+  private async decodeVideoFrame(): Promise<string | null> {
+    if (
+      this.video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA ||
+      this.video.videoWidth === 0 ||
+      this.video.videoHeight === 0
+    ) {
+      return null;
+    }
+
+    if (this.nativeDetector) {
+      try {
+        const result = await this.nativeDetector.detect(this.video);
+        const code = result.find((item) => item.rawValue)?.rawValue;
+        if (code) {
+          return code;
+        }
+      } catch {
+        this.nativeDetector = null;
+      }
+    }
+
+    const maxDimension = 1_280;
+    const scale = Math.min(
+      1,
+      maxDimension / Math.max(this.video.videoWidth, this.video.videoHeight),
+    );
+    this.canvas.width = Math.max(
+      1,
+      Math.round(this.video.videoWidth * scale),
+    );
+    this.canvas.height = Math.max(
+      1,
+      Math.round(this.video.videoHeight * scale),
+    );
+    const context = this.canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) {
+      return null;
+    }
+    context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+    return decodeCanvas(this.canvas);
+  }
+
   stop(): void {
     this.active = false;
     cancelAnimationFrame(this.animationFrame);
     this.animationFrame = 0;
+    this.lastScanAt = 0;
     for (const track of this.stream?.getTracks() ?? []) {
       track.stop();
     }

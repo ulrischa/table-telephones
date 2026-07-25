@@ -18,6 +18,20 @@ export function createInviteLink(
   return url.toString();
 }
 
+export function createInviteShareText(
+  signal: OfferSignal,
+  inviteLink: string,
+): string {
+  return [
+    `${signal.host.name} lädt dich zu einem lokalen Chat mit table-telephones ein.`,
+    "",
+    `Einladungslink: ${inviteLink}`,
+    "",
+    "Falls der Link offline nicht öffnet: Starte die bereits installierte App, wähle „Chat beitreten“ und füge diesen Verbindungscode ein:",
+    encodeSignal(signal),
+  ].join("\n");
+}
+
 export function hasInviteLink(urlValue: string): boolean {
   try {
     const url = new URL(urlValue);

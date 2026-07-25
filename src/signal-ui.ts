@@ -1,5 +1,9 @@
 import type { ConnectionSignal } from "./types";
-import { createInviteLink, decodeSharedSignal } from "./invite-link";
+import {
+  createInviteLink,
+  createInviteShareText,
+  decodeSharedSignal,
+} from "./invite-link";
 import { encodeSignal } from "./signaling";
 import { CameraQrScanner, renderQrCode, scanQrImage } from "./qr";
 import { getRequiredElement } from "./utils";
@@ -106,7 +110,17 @@ export class SignalUi {
     privacy.textContent =
       "Teile diese Verbindungsdaten nur mit den gewünschten Teilnehmern. Sie enthalten lokale Netzwerkdaten.";
 
-    this.signalContent.append(instruction, actions, details, qrDetails, privacy);
+    this.signalContent.append(instruction, actions, details, qrDetails);
+
+    if (isInvite) {
+      const offlineNote = document.createElement("p");
+      offlineNote.className = "privacy-note";
+      offlineNote.textContent =
+        "Ohne Internet im Teilen-Menü Quick Share, AirDrop oder Bluetooth wählen. Der Link öffnet offline nur, wenn die App auf dem anderen Gerät bereits installiert oder zuvor vollständig geladen wurde.";
+      this.signalContent.append(offlineNote);
+    }
+
+    this.signalContent.append(privacy);
 
     let nextButton: HTMLButtonElement | null = null;
     if (options.nextLabel) {
@@ -237,10 +251,18 @@ export class SignalUi {
       this.usePastedSignal.addEventListener("click", onPaste);
       this.qrImageInput.addEventListener("change", onFile);
 
-      void this.scanner.start(processCode).catch(() => {
-        this.scannerStatus.textContent =
-          "Kamera nicht verfügbar. Du kannst ein QR-Bild auswählen oder die Verbindungsdaten einfügen.";
-      });
+      void this.scanner
+        .start(processCode)
+        .then(() => {
+          if (!settled) {
+            this.scannerStatus.textContent =
+              "Kamera aktiv. Halte den QR-Code vollständig und möglichst gerade in den Rahmen.";
+          }
+        })
+        .catch(() => {
+          this.scannerStatus.textContent =
+            "Kamera nicht verfügbar. Du kannst ein QR-Bild auswählen oder die Verbindungsdaten einfügen.";
+        });
     });
   }
 
@@ -277,8 +299,7 @@ export class SignalUi {
     if (signal.kind === "offer") {
       await navigator.share({
         title: "Einladung zu table-telephones",
-        text: `${signal.host.name} lädt dich zu einem lokalen Chat ein.`,
-        url: sharedValue,
+        text: createInviteShareText(signal, sharedValue),
       });
       return;
     }
