@@ -373,7 +373,7 @@ textarea {
 
 .chat-view {
   display: grid;
-  grid-template-rows: auto auto minmax(10rem, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(10rem, 1fr) auto;
   width: min(100%, 54rem);
   height: calc(100dvh - 4.5rem);
   margin: 0 auto;
@@ -411,6 +411,38 @@ textarea {
   color: #15553a;
   background: #e0f2e8;
   border-color: #91c8a9;
+}
+
+.notification-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.75rem 1rem 0;
+  padding: 0.75rem 0.85rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.notification-prompt > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.notification-prompt strong {
+  font-size: 0.9rem;
+}
+
+.notification-prompt span {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.notification-prompt .button {
+  flex: 0 0 auto;
 }
 
 .message-list {
@@ -950,6 +982,12 @@ textarea {
   .chat-heading .button {
     min-height: 2.35rem;
     padding: 0.45rem 0.65rem;
+  }
+
+  .notification-prompt {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.65rem;
   }
 
   .message-bubble {

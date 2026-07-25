@@ -124,6 +124,23 @@
             Preparing connection…
           </div>
 
+          <div id="notification-prompt" class="notification-prompt" hidden>
+            <div>
+              <strong id="notification-title">Get notified about new messages</strong>
+              <span id="notification-description">
+                Works while this chat is still running in the background.
+              </span>
+            </div>
+            <button
+              id="notification-button"
+              class="button button-secondary"
+              type="button"
+              aria-describedby="notification-description"
+            >
+              Enable notifications
+            </button>
+          </div>
+
           <ol id="message-list" class="message-list" aria-label="Messages">
             <li id="empty-chat" class="empty-chat">
               <span class="empty-icon" aria-hidden="true">↗↙</span>

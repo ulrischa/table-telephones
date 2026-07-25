@@ -1,4 +1,4 @@
-const CACHE_NAME = "table-telephones-v4";
+const CACHE_NAME = "table-telephones-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -86,5 +86,31 @@ self.addEventListener("fetch", (event) => {
         return Response.error();
       }
     }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const targetUrl = new URL(
+    event.notification.data?.url || "./",
+    self.registration.scope,
+  ).href;
+
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: "window", includeUncontrolled: true })
+      .then(async (windowClients) => {
+        const existingClient = windowClients.find((client) =>
+          client.url.startsWith(self.registration.scope),
+        );
+
+        if (existingClient) {
+          await existingClient.focus();
+          return;
+        }
+
+        await self.clients.openWindow(targetUrl);
+      }),
   );
 });

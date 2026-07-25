@@ -5,6 +5,10 @@ import {
   hasInviteLink,
   readInviteLink,
 } from "./invite-link";
+import {
+  showIncomingNotification,
+  supportsLocalNotifications,
+} from "./notifications";
 import { LocalRoom } from "./room";
 import { SignalUi } from "./signal-ui";
 import type { AnswerSignal, OfferSignal, RoomEvents } from "./types";
@@ -32,6 +36,22 @@ const discardInviteButton = getRequiredElement(
   HTMLButtonElement,
 );
 const installButton = getRequiredElement("#install-button", HTMLButtonElement);
+const notificationPrompt = getRequiredElement(
+  "#notification-prompt",
+  HTMLElement,
+);
+const notificationTitle = getRequiredElement(
+  "#notification-title",
+  HTMLElement,
+);
+const notificationDescription = getRequiredElement(
+  "#notification-description",
+  HTMLElement,
+);
+const notificationButton = getRequiredElement(
+  "#notification-button",
+  HTMLButtonElement,
+);
 
 function notify(message: string): void {
   const toast = document.createElement("div");
@@ -62,8 +82,22 @@ const chatView = new ChatView({
 function createRoomEvents(): RoomEvents {
   return {
     onParticipants: (participants) => chatView.updateParticipants(participants),
-    onText: (message) => chatView.addText(message),
-    onImage: (message) => chatView.addImage(message),
+    onText: (message) => {
+      chatView.addText(message);
+      if (!message.isOwn) {
+        void showIncomingNotification(message.sender.name, "text").catch(() => {
+          // Notification delivery is best-effort and must not interrupt the chat.
+        });
+      }
+    },
+    onImage: (message) => {
+      chatView.addImage(message);
+      if (!message.isOwn) {
+        void showIncomingNotification(message.sender.name, "image").catch(() => {
+          // Notification delivery is best-effort and must not interrupt the chat.
+        });
+      }
+    },
     onSystem: (message) => chatView.addSystem(message),
     onStatus: (message, ready) => {
       chatView.setStatus(message, ready);
@@ -82,6 +116,55 @@ function requireRoom(): LocalRoom {
     throw new Error("The chat has not been started.");
   }
   return room;
+}
+
+function updateNotificationPrompt(): void {
+  if (!room || !supportsLocalNotifications()) {
+    notificationPrompt.hidden = true;
+    return;
+  }
+
+  if (Notification.permission === "granted") {
+    notificationPrompt.hidden = true;
+    return;
+  }
+
+  notificationPrompt.hidden = false;
+
+  if (Notification.permission === "denied") {
+    notificationTitle.textContent = "Notifications are blocked";
+    notificationDescription.textContent =
+      "Allow notifications in your browser or system settings to enable them.";
+    notificationButton.hidden = true;
+    return;
+  }
+
+  notificationTitle.textContent = "Get notified about new messages";
+  notificationDescription.textContent =
+    "Works while this chat is still running in the background.";
+  notificationButton.hidden = false;
+  notificationButton.disabled = false;
+}
+
+async function enableNotifications(): Promise<void> {
+  if (!supportsLocalNotifications()) {
+    return;
+  }
+
+  notificationButton.disabled = true;
+
+  try {
+    const permission = await Notification.requestPermission();
+    updateNotificationPrompt();
+    notify(
+      permission === "granted"
+        ? "Notifications are enabled while this chat is running."
+        : "Notifications were not enabled.",
+    );
+  } catch {
+    notificationButton.disabled = false;
+    notify("Notification permission could not be requested.");
+  }
 }
 
 async function addPerson(): Promise<void> {
@@ -128,6 +211,7 @@ async function joinRoom(invite: OfferSignal | null = null): Promise<void> {
     room = guestRoom;
     pendingInvite = null;
     chatView.show("guest");
+    updateNotificationPrompt();
     pendingAnswer = answer;
     chatView.setHeaderAction("Show answer", true);
     await showGuestAnswer(answer);
@@ -160,6 +244,7 @@ async function showGuestAnswer(answer: AnswerSignal): Promise<void> {
 async function startHost(): Promise<void> {
   room = new LocalRoom("host", displayName.value, createRoomEvents());
   chatView.show("host");
+  updateNotificationPrompt();
   await addPerson();
 }
 
@@ -262,6 +347,10 @@ discardInviteButton.addEventListener("click", () => {
   discardPendingInvite();
   displayName.focus();
 });
+notificationButton.addEventListener("click", () => {
+  void enableNotifications();
+});
+document.addEventListener("visibilitychange", updateNotificationPrompt);
 
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();

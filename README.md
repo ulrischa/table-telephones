@@ -16,6 +16,8 @@ one complete load over HTTPS, the app can be used without internet access.
   fallback
 - camera autofocus request, tap-to-refocus, and optional zoom and light controls
   where the device supports them
+- optional local notifications for incoming messages while the running chat is
+  in the background
 - installable, offline-capable PWA
 - no accounts, database, advertising, tracking, or external resources
 - no persistent storage of messages or images
@@ -54,6 +56,20 @@ not sent to the web server and is removed from the address bar after it is read.
 In a group chat, the room host acts as the local relay peer. Every participant
 connects directly to the host, which relays messages to the other participants.
 The host device must therefore stay connected. There is no delayed delivery.
+
+## Background notifications
+
+After entering a chat, select **Enable notifications** and approve the browser
+permission. The app then shows a local system notification for incoming text
+and image messages while the chat page is hidden. Notifications contain the
+sender name and a generic message type, but no message text or image content.
+Selecting a notification focuses or opens the PWA.
+
+This is not server-based Web Push. It works without internet access, but only
+while the PWA, its WebRTC connection, and its JavaScript remain active in the
+background. Notifications are not reliable after the app is closed, the
+browser or operating system suspends it, or the device remains locked for a
+long time.
 
 ## Requirements
 
@@ -148,6 +164,8 @@ verified with at least two physical devices.
 - no automatic device discovery; every connection still requires an invitation
   and an answer
 - no chat history or delivery to disconnected participants
+- no notifications after the browser or operating system stops the background
+  WebRTC session
 - room host is the relay peer and a single point of failure for groups
 - protocol limit of 128 participants including the host; the practical number
   is usually much lower and depends on the device, browser, and image traffic

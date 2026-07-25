@@ -26,6 +26,7 @@ communication.
 - 16 KB image chunks with DataChannel backpressure
 - raster images restricted to JPEG, PNG, and WebP; SVG is not accepted
 - safe DOM rendering without `innerHTML`
+- background notifications omit message text and image content
 - restrictive CSP, Permissions Policy, and additional HTTP security headers
 - no persistent message or image storage
 
@@ -38,6 +39,9 @@ communication.
 - Browser and image-decoder security updates are outside the app's control.
 - The app cannot prevent radio interference or deliberate local-network
   congestion.
+- When notifications are enabled, the operating system may show the sender name
+  and whether an image was received on the lock screen. The exact presentation
+  is controlled by browser and system notification settings.
 - QR recognition depends on the physical camera, screen, lighting, reflections,
   browser support, and the distance between devices. Raw-code input and QR image
   selection remain available when a live camera scan is unreliable.
