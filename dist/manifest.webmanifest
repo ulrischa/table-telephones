@@ -9,18 +9,18 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#f4f0e7",
-  "theme_color": "#16382f",
+  "background_color": "#ead9b7",
+  "theme_color": "#111517",
   "categories": ["social", "utilities"],
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "./app-icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "./app-icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

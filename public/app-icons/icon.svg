@@ -1,0 +1,46 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 512 512"
+  role="img"
+  aria-labelledby="icon-title"
+  data-icon="art-deco-table-telephone"
+>
+  <title id="icon-title">Art Deco table telephone</title>
+  <rect width="512" height="512" fill="#111517"/>
+  <g fill="#6d5021" opacity="0.48">
+    <path d="M256 256 88 0h56l112 256Z"/>
+    <path d="M256 256 208 0h48v256Z"/>
+    <path d="M256 256 368 0h56L256 256Z"/>
+    <path d="m256 256 256-168v56L256 256Z"/>
+    <path d="m256 256 256-48v48H256Z"/>
+    <path d="m256 256 256 112v56L256 256Z"/>
+    <path d="m256 256 168 256h-56L256 256Z"/>
+    <path d="m256 256 48 256h-48V256Z"/>
+    <path d="M256 256 144 512H88l168-256Z"/>
+    <path d="M256 256 0 424v-56l256-112Z"/>
+    <path d="M256 256 0 304v-48h256Z"/>
+    <path d="M256 256 0 144V88l256 168Z"/>
+  </g>
+  <path fill="#c39a49" d="M174 48h164l126 126v164L338 464H174L48 338V174L174 48Z"/>
+  <path fill="#ead9b7" d="M185 72h142l113 113v142L327 440H185L72 327V185L185 72Z"/>
+  <g fill="#111517">
+    <path d="M117 145c42-36 236-36 278 0l-30 75c-22 14-55 8-71-14l-7-18h-62l-7 18c-16 22-49 28-71 14l-30-75Z"/>
+    <rect x="231" y="191" width="50" height="94" rx="11"/>
+  </g>
+  <path fill="#c39a49" d="m166 270 18-26h144l18 26 39 139H127l39-139Z"/>
+  <path fill="#111517" d="m183 282 13-18h120l13 18 28 102H155l28-102Z"/>
+  <circle cx="256" cy="326" r="68" fill="#c39a49"/>
+  <circle cx="256" cy="326" r="52" fill="#111517"/>
+  <g fill="#ead9b7">
+    <circle cx="256" cy="288" r="10"/>
+    <circle cx="283" cy="299" r="10"/>
+    <circle cx="294" cy="326" r="10"/>
+    <circle cx="283" cy="353" r="10"/>
+    <circle cx="256" cy="364" r="10"/>
+    <circle cx="229" cy="353" r="10"/>
+    <circle cx="218" cy="326" r="10"/>
+    <circle cx="229" cy="299" r="10"/>
+  </g>
+  <circle cx="256" cy="326" r="18" fill="#c39a49"/>
+  <path fill="#c39a49" d="M110 396h292l18 34H92l18-34Z"/>
+</svg>

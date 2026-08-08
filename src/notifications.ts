@@ -57,8 +57,8 @@ export async function showIncomingNotification(
   const content = createNotificationContent(senderName, kind);
   const options: NotificationOptions & { renotify: boolean } = {
     body: content.body,
-    icon: new URL("./icons/icon-192.png", document.baseURI).href,
-    badge: new URL("./icons/icon-192.png", document.baseURI).href,
+    icon: new URL("./app-icons/icon-192.png", document.baseURI).href,
+    badge: new URL("./app-icons/icon-192.png", document.baseURI).href,
     tag: "table-telephones-incoming-message",
     renotify: true,
     data: { url: "./" },

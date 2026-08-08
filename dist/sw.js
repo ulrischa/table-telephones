@@ -1,13 +1,13 @@
-const CACHE_NAME = "table-telephones-v5";
+const CACHE_NAME = "table-telephones-v7";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/app.js",
   "./assets/app.css",
-  "./icons/icon.svg",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
+  "./app-icons/icon.svg",
+  "./app-icons/icon-192.png",
+  "./app-icons/icon-512.png",
 ];
 
 function scopedUrl(path) {
